@@ -7,8 +7,7 @@ withEnv(["BRANCH=master"]) {
 			node('Slave-Win-01') {		
 
 				bat 'powershell -c "Remove-Item c:/PSRelease -ErrorAction SilentlyContinue -Recurse -Force; exit 0"'
-				bat 'git clone -b master https://github.com/powershell/PSRelease.git c:/PSRelease'    
-				bat 'powershell -f "c:/PSRelease/Bootstrap.ps1"'
+				bat 'git clone -b master https://github.com/powershell/PSRelease.git c:/PSRelease'
 				bat 'cd c:/PSRelease/ & powershell -f c:/PSRelease/GenerateWindowsPackages.ps1 -branch %BRANCH% -Runtime win10-x64 -destinationPath %WORKSPACE%'
 				bat 'cd c:/PSRelease/ & powershell -f c:/PSRelease/GenerateWindowsPackages.ps1 -branch %BRANCH% -Runtime win81-x64 -destinationPath %WORKSPACE%'
 				bat 'cd c:/PSRelease/ & powershell -f c:/PSRelease/GenerateWindowsPackages.ps1 -branch %BRANCH% -Runtime win7-x64 -destinationPath %WORKSPACE%'
