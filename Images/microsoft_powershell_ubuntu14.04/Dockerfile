@@ -30,6 +30,9 @@ RUN apt-get update \
 	apt-transport-https \
 	wget \
 	dpkg-dev \
+	libfuse-dev \
+	fuse \
+	python \	
     && rm -rf /var/lib/apt/lists/*
 
 # Import the public repository GPG keys for Microsoft
