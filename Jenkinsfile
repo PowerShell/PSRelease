@@ -35,9 +35,11 @@ withEnv(["BRANCH=master"]) {
 
 				sh "find /tmp/PSRelease -name '*.deb' -exec cp -prv '{}' $WORKSPACE ';'"
 				sh "find /tmp/PSRelease -name '*.rpm' -exec cp -prv '{}' $WORKSPACE ';'"			
+				sh "find /tmp/PSRelease -name '*.AppImage' -exec cp -prv '{}' $WORKSPACE ';'"
 
 				archiveArtifacts '*.deb'
 				archiveArtifacts '*.rpm'
+				archiveArtifacts '*.AppImage'
 
 			}
 		}
