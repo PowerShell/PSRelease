@@ -20,7 +20,6 @@ $output = Split-Path -Parent (Get-PSOutput -Options (New-PSOptions -Publish))
 Start-PSBuild -Crossgen -PSModuleRestore
 
 Start-PSPackage
-Start-PSPackage -Type AppImage
 
 Pop-Location
 
