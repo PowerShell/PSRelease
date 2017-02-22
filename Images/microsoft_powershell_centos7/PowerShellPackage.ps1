@@ -24,7 +24,7 @@ Start-PSPackage -Type AppImage
 
 Pop-Location
 
-$linuxPackages = Get-ChildItem "$location/powershell*" -Include *.deb,*.rpm
+$linuxPackages = Get-ChildItem "$location/powershell*" -Include *.deb,*.rpm,*.AppImage
 foreach($linuxPackage in $linuxPackages) 
 { 
     Copy-Item "$($linuxPackage.FullName)" "$destination" -force
