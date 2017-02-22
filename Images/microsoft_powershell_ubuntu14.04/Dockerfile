@@ -28,6 +28,7 @@ RUN apt-get update \
         curl \
         git \
 	apt-transport-https \
+	wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Import the public repository GPG keys for Microsoft
