@@ -16,8 +16,7 @@ RUN zypper --non-interactive update --skip-interactive \
         glibc-locale \
         libgcc_s1 \
         libicu \
-        libsdtc++6 \
-        libstdc_s1 \
+        libstdc++6 \
         libunwind \
         openssl \
         python \
