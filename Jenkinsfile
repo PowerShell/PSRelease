@@ -32,8 +32,7 @@ withEnv(["BRANCH=v6.0.0-alpha.17"]) {
 				sh "docker build --force-rm --tag microsoft/powershell:opensuse13.2 /tmp/PSRelease/Images/microsoft_powershell_opensuse13.2"			
 				sh "docker run --rm --cap-add SYS_ADMIN --cap-add MKNOD --device=/dev/fuse --security-opt apparmor:unconfined --volume /tmp/PSRelease:/mnt microsoft/powershell:ubuntu14.04 -c \"powershell -c \"/PowerShellPackage.ps1 -branch $BRANCH\" \""
 				sh "docker run --rm --volume /tmp/PSRelease:/mnt microsoft/powershell:ubuntu16.04 -c \"powershell -c \"/PowerShellPackage.ps1 -branch $BRANCH\" \""
-				sh "docker run --rm --volume /tmp/PSRelease:/mnt microsoft/powershell:centos7 -c \"powershell -c \"/PowerShellPackage.ps1 -branch $BRANCH\" \""
-				sh "docker run --rm --volume /tmp/PSRelease:/mnt microsoft/powershell:opensuse13.2 -c \"powershell -c \"/PowerShellPackage.ps1 -branch $BRANCH\" \""
+				sh "docker run --rm --volume /tmp/PSRelease:/mnt microsoft/powershell:centos7 -c \"powershell -c \"/PowerShellPackage.ps1 -branch $BRANCH\" \""				
 
 				sh "find /tmp/PSRelease -name '*.deb' -exec cp -prv '{}' $WORKSPACE ';'"
 				sh "find /tmp/PSRelease -name '*.rpm' -exec cp -prv '{}' $WORKSPACE ';'"			
