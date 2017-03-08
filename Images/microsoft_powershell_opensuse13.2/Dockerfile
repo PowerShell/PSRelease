@@ -18,9 +18,10 @@ RUN zypper --non-interactive update --skip-interactive \
         libicu \
         libstdc++6 \
         libunwind \
+        ncurses-utils \
         openssl \
-        python \
         ossp-uuid \
+        python \
         which \
     && zypper --non-interactive clean --all
 
