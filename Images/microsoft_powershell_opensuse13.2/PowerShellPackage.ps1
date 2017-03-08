@@ -17,7 +17,10 @@ Set-Location "$location"
 Import-Module "$location/build.psm1"
 Start-PSBootstrap -Package -NoSudo
 $output = Split-Path -Parent (Get-PSOutput -Options (New-PSOptions -Publish))
-Start-PSBuild -Crossgen -PSModuleRestore
+
+#TODO update to use crossgen
+Start-PSBuild -Runtime 'opensuse.13.2-x64' -PSModuleRestore -Publish
+
 
 Start-PSPackage
 Start-PSPackage -Type AppImage
