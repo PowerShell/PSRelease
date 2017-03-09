@@ -16,7 +16,15 @@ Push-Location
 Set-Location "$location"
 Import-Module "$location/build.psm1"
 Start-PSBootstrap -Package -NoSudo
-$output = Split-Path -Parent (Get-PSOutput -Options (New-PSOptions -Publish))
+
+#TODO fix in build.psm1
+$fpmPath  = Get-ChildItem /usr/lib64/ruby/gems/2.1.0/gems/fpm -Recurse  | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty DirectoryName  
+$env:PATH = $ENV:PATH +":" + $fpmPath
+$ronnPath  = Get-ChildItem /usr/lib64/ruby/gems/2.1.0/gems/ronn -Recurse  | Sort-Object -Property LastWriteTime -Descending | Select-Object -First 1 -ExpandProperty DirectoryName  
+$env:PATH = $ENV:PATH +":" + $ronnPath
+Write-Verbose -message "Path: ${env:PATH}" -Verbose
+
+$output   = Split-Path -Parent (Get-PSOutput -Options (New-PSOptions -Publish))
 
 #TODO update to use crossgen
 Start-PSBuild -Runtime 'opensuse.13.2-x64' -PSModuleRestore -Publish
