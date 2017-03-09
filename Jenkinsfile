@@ -25,8 +25,7 @@ withEnv(["BRANCH=v6.0.0-alpha.17"]) {
 
 				sh "rm -r -f /tmp/PSRelease"
 				sh "find $WORKSPACE -type f -exec rm '{}' ';'"
-				sh "git clone -b master https://github.com/powershell/PSRelease.git /tmp/PSRelease"
-				sh "docker rmi travisez13/powershell:opensuse13.2 --force"
+				sh "git clone -b master https://github.com/powershell/PSRelease.git /tmp/PSRelease"				
 				sh "docker build --force-rm --tag microsoft/powershell:ubuntu14.04 /tmp/PSRelease/Images/microsoft_powershell_ubuntu14.04"
 				sh "docker build --force-rm --tag microsoft/powershell:ubuntu16.04 /tmp/PSRelease/Images/microsoft_powershell_ubuntu16.04"
 				sh "docker build --force-rm --tag microsoft/powershell:centos7 /tmp/PSRelease/Images/microsoft_powershell_centos7"
