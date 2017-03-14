@@ -1,7 +1,7 @@
 # Docker image file that describes an opensuse13.2 image with PowerShell installed
 # TODO: install powershell from Microsoft APT Repo
 
-FROM travisez13/powershell:opensuse13.2
+FROM microsoft/powershell:opensuse13.2
 LABEL maintaner Travis Plunk <travis.plunk@microsoft.com>
 
 # Install dependencies and clean up
