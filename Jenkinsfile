@@ -1,4 +1,4 @@
-withEnv(["BRANCH=v6.0.0-alpha.17"]) {
+withEnv(["BRANCH=master"]) {
 
 	stage('Build_Package_Publish') {
 
