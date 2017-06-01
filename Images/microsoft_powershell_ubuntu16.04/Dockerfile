@@ -3,11 +3,6 @@
 FROM ubuntu:xenial
 MAINTAINER Raghu Shantha <raghus@microsoft.com>
 
-# Setup the locale
-ENV LANG en_US.UTF-8
-ENV LC_ALL $LANG
-RUN locale-gen $LANG && update-locale
-
 # Install dependencies and clean up
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -29,9 +24,15 @@ RUN apt-get update \
         curl \
         git \
 	apt-transport-https \
+	locales \
 	wget \
     && rm -rf /var/lib/apt/lists/*
-    
+
+# Setup the locale
+ENV LANG en_US.UTF-8
+ENV LC_ALL $LANG
+RUN locale-gen $LANG && update-locale
+
 # Import the public repository GPG keys for Microsoft
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
 	
