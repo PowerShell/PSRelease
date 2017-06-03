@@ -11,9 +11,10 @@ param (
     [string] $destination = '/mnt'
 )
 
-git clone --recursive https://github.com/$fork/powershell.git -b $branch 2> $null
+git clone --quiet https://github.com/$fork/powershell.git -b $branch
 Push-Location
 Set-Location "$location"
+git submodule update --init --recursive --quiet
 Import-Module "$location/build.psm1"
 Start-PSBootstrap -Package -NoSudo
 $output = Split-Path -Parent (Get-PSOutput -Options (New-PSOptions -Publish))
