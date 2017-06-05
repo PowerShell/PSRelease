@@ -43,20 +43,8 @@ function Get-Destination
     [cmdletbinding(DefaultParameterSetName='default')]
     param(
         [Parameter(ParameterSetName='full',Mandatory=$true)]
-        [switch]$Full,
-
-        [Parameter(ParameterSetName='output',Mandatory=$true)]
-        [switch]$Output,
-
-        [Parameter(ParameterSetName='output',Mandatory=$true)]
-        [string]$MappedVolume
-        )
-
-    if($Output.IsPresent)
-    {
-        $relativePath = ((Get-Destination -full).Replace((Get-Destination),''))
-        return Join-Path -Path $mappedVolume -ChildPath  $relativePath
-    }
+        [switch]$Full
+    )
 
     if($env:BUILD_BINARIESDIRECTORY)
     {
@@ -369,11 +357,15 @@ function Write-VstsMessage {
         $script:taskstate = $warningStateName
     }
 
+    # See VSTS documentation at https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+    # Log task message
     Write-Host "##vso[task.logissue type=$type]$message"
 }
 
 function Write-VstsTaskState
 {
+    # See VSTS documentation at https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+    # Log task state
     Write-Host "##vso[task.complete result=$script:taskstate;]DONE"
 }
 
