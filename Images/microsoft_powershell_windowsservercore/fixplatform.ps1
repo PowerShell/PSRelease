@@ -1,1 +1,0 @@
-[System.Environment]::SetEnvironmentVariable('platform',$null,[System.EnvironmentVariableTarget]::Machine)
