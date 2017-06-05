@@ -12,10 +12,10 @@ param (
 
 if(-not $env:homedrive)
 {
-        Write-Verbose "fixng empty home paths..." -Verbose
-        $profileParts = $env:userprofile -split ':'
-        $env:homedrive = $profileParts[0]+':'
-        $env:homepath = $profileParts[1]
+    Write-Verbose "fixng empty home paths..." -Verbose
+    $profileParts = $env:userprofile -split ':'
+    $env:homedrive = $profileParts[0]+':'
+    $env:homepath = $profileParts[1]
 }
 
 if(! (Test-Path $destination))
@@ -48,7 +48,6 @@ if (-not (Test-Path $gitBinFullPath))
 Write-Verbose "cloning -b $branch https://github.com/$fork/powershell.git" -verbose
 & $gitBinFullPath clone -b $branch --quiet https://github.com/$fork/powershell.git $location
 
-Push-Location
 try{
     Set-Location $location
     & $gitBinFullPath  submodule update --init --recursive --quiet
@@ -56,10 +55,10 @@ try{
     Import-Module "$location\build.psm1" -Force
     $env:platform = $null
     Write-Verbose "Bootstrapping powershell build..." -verbose
-    Start-PSBootstrap -Force
+    Start-PSBootstrap -Force -Package
 
     Write-Verbose "Starting powershell build..." -verbose
-    Start-PSBuild -Clean -CrossGen -Publish -PSModuleRestore -Runtime $Runtime -Configuration Release
+    Start-PSBuild -Clean -CrossGen -PSModuleRestore -Runtime $Runtime -Configuration Release
 
     $pspackageParams = @{'Type'='msi'}
     if ($Runtime -ne 'win10-x64')

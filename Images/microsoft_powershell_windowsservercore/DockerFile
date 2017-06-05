@@ -6,8 +6,6 @@ LABEL description="This Dockerfile for Windows Server Core with git installed vi
 
 SHELL ["powershell"]
 
-COPY daemon.ps1 /
-
 COPY PowerShellPackage.ps1 /
 
 ENTRYPOINT ["powershell"]
