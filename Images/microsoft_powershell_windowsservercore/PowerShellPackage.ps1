@@ -7,8 +7,17 @@ param (
     [string] $destination = "$env:WORKSPACE",
     [ValidateSet("win7-x64", "win81-x64", "win10-x64", "win7-x86")]    
     [string]$Runtime = 'win10-x64',
-    [switch] $Wait
+    [switch] $Wait,
+    [ValidatePattern("^v\d+\.\d+\.\d+(-\w+\.\d+)?$")]
+    [ValidateNotNullOrEmpty()]
+    [string]$ReleaseTag
 )
+
+$releaseTagParam = @{}
+if($ReleaseTag)
+{
+    $releaseTagParam = @{ 'ReleaseTag' = $ReleaseTag }
+}
 
 if(-not $env:homedrive)
 {
@@ -58,7 +67,7 @@ try{
     Start-PSBootstrap -Force -Package
 
     Write-Verbose "Starting powershell build..." -verbose
-    Start-PSBuild -Clean -CrossGen -PSModuleRestore -Runtime $Runtime -Configuration Release
+    Start-PSBuild -Clean -CrossGen -PSModuleRestore -Runtime $Runtime -Configuration Release @releaseTagParam
 
     $pspackageParams = @{'Type'='msi'}
     if ($Runtime -ne 'win10-x64')
