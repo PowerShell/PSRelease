@@ -46,14 +46,14 @@ $linuxPackages = Get-ChildItem "$location/powershell*" -Include *.deb,*.rpm
     
 foreach($linuxPackage in $linuxPackages) 
 { 
-    Copy-Item $linuxPackage.FullName $destination -force
+    Copy-Item -Path $linuxPackage.FullName -Destination $destination -force
 }
 
 if($AppImage.IsPresent)
 {
     $appImages = Get-ChildItem -Path $location -Filter '*.AppImage'
-    foreach($appImage in $appImages) 
+    foreach($appImageFile in $appImages) 
     { 
-        Copy-Item $appImage.FullName $destination -force
+        Copy-Item -Path $appImageFile.FullName -Destination $destination -force
     }
 }
