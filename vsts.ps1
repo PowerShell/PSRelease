@@ -25,7 +25,12 @@ param(
 
     [Parameter(ParameterSetName='Build')]
     [switch]
-    $AppImage
+    $AppImage,
+
+    [Parameter(ParameterSetName='Build')]
+    [ValidatePattern("^v\d+\.\d+\.\d+(-\w+\.\d+)?$")]
+    [ValidateNotNullOrEmpty()]
+    [string]$ReleaseTag
 )
 
 try 
@@ -39,7 +44,13 @@ try
         }
 
         'Build' {
-            Invoke-PSDockerBuild -image $Image -Runtime $Runtime -AppImage:$AppImage.IsPresent
+            $releaseTagParam = @{}
+            if($ReleaseTag)
+            {
+                $releaseTagParam = @{ 'ReleaseTag' = $ReleaseTag }
+            }
+
+            Invoke-PSDockerBuild -image $Image -Runtime $Runtime -AppImage:$AppImage.IsPresent @releaseTagParam
         }
 
         'PublishArtifacts' {
