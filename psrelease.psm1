@@ -60,7 +60,8 @@ function Get-Destination
 
 function Get-TempFolder
 {
-    $tempPath = $env:TEMP
+    $tempPath = [System.IO.Path]::GetTempPath()
+    # Use the agent temp on VSTS which is cleanup between builds (the user temp is not)
     if($env:AGENT_TEMPDIRECTORY)
     {
         $tempPath = $env:AGENT_TEMPDIRECTORY

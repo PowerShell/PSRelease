@@ -3,10 +3,10 @@
 # Ensure PowerShell is available in the provided image
 
 param (
-	[string] $fork = "powershell",
-	[string] $branch = "master",
-	[string] $location = "/powershell",
-    
+    [string] $fork = "powershell",
+    [string] $branch = "master",
+    [string] $location = "/powershell",
+
     # Destination location of the package on docker host
     [string] $destination = '/mnt',
 
@@ -22,35 +22,38 @@ if($ReleaseTag)
     $releaseTagParam = @{ 'ReleaseTag' = $ReleaseTag }
 }
 
-git clone --quiet https://github.com/$fork/powershell.git -b $branch
+git clone --quiet https://github.com/$fork/powershell.git -b $branch $location
 Push-Location
-Set-Location "$location"
-git submodule update --init --recursive --quiet
-Import-Module "$location/build.psm1"
-Start-PSBootstrap -Package -NoSudo
-$output = Split-Path -Parent (Get-PSOutput -Options (New-PSOptions -Publish))
-Start-PSBuild -Crossgen -PSModuleRestore @releaseTagParam
+try {
+    Set-Location $location
+    git submodule update --init --recursive --quiet
+    Import-Module "$location/build.psm1"
+    Start-PSBootstrap -Package -NoSudo
+    Start-PSBuild -Crossgen -PSModuleRestore @releaseTagParam
 
-Start-PSPackage @releaseTagParam
-if($AppImage.IsPresent)
-{
-    Start-PSPackage -Type AppImage @releaseTagParam
+    Start-PSPackage @releaseTagParam
+    if($AppImage.IsPresent)
+    {
+        Start-PSPackage -Type AppImage @releaseTagParam
+    }
 }
-
-Pop-Location
+finally
+{
+    Pop-Location
+}
 
 $linuxPackages = Get-ChildItem "$location/powershell*" -Include *.deb,*.rpm
     
 foreach($linuxPackage in $linuxPackages) 
 { 
-    Copy-Item "$($linuxPackage.FullName)" "$destination" -force
+    Copy-Item $linuxPackage.FullName $destination -force
 }
 
 if($AppImage.IsPresent)
 {
-    $appImages = Get-ChildItem -Path "$location" -Filter "*.AppImage"
+    $appImages = Get-ChildItem -Path $location -Filter '*.AppImage'
     foreach($appImage in $appImages) 
     { 
-        Copy-Item "$($appImage.FullName)" "$destination" -force
+        Copy-Item $appImage.FullName $destination -force
     }
 }
