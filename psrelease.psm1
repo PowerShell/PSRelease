@@ -58,6 +58,23 @@ function Get-Destination
     return $env:TEMP
 }
 
+function Get-TempFolder
+{
+    $tempPath = $env:TEMP
+    if($env:AGENT_TEMPDIRECTORY)
+    {
+        $tempPath = $env:AGENT_TEMPDIRECTORY
+    }
+
+    $tempFolder = Join-Path -Path $tempPath -ChildPath ([System.IO.Path]::GetRandomFileName())
+    if(!(test-path $tempFolder))
+    {
+        $null = New-Item -Path $tempFolder -ItemType Directory
+    }
+
+    return $tempFolder
+}
+
 # Builds a Docker container for an image
 function Invoke-PSBuildContainer
 {
@@ -72,12 +89,32 @@ function Invoke-PSBuildContainer
 
     try {
         $imagePath = Join-Path (join-path $PSScriptRoot -ChildPath 'Images')  -ChildPath "microsoft_powershell_$image"
+        $dockerFilePath = Join-Path -Path $imagePath -ChildPath Dockerfile
+        
         $imageName = Get-BuildImageName -image $image
+
+        # for linux images, use the common folder for the context
+        if($image -ne 'windowsservercore')
+        {
+            $contextPath = Get-TempFolder
+            $genericFilesPath = Join-Path (Join-Path (join-path $PSScriptRoot -ChildPath 'Images')  -ChildPath "GenericLinuxFiles") -ChildPath '*'
+            Copy-Item -Path $genericFilesPath -Destination $contextPath
+            Copy-Item -Path $dockerFilePath -Destination $contextPath
+        }
+        else 
+        {
+            $contextPath = $imagePath
+        }
 
         # always log docker host information to allow troubleshooting issues with docker
         Write-Verbose "Docker_host: $env:DOCKER_HOST" -Verbose
-        $null = Invoke-Docker -command build -params '--force-rm', '--tag', $imageName, $imagePath
+        $null = Invoke-Docker -command build -params '--force-rm', '--tag', $imageName, $contextPath
         $null = Invoke-Docker -command images -params 'ls' -FailureAction warning
+
+        if($image -ne 'windowsservercore')
+        {
+            remove-item $contextPath -Recurse -Force -ErrorAction SilentlyContinue
+        }
     } 
     catch
     {
@@ -110,7 +147,11 @@ function Invoke-PSDockerBuild
         [ValidateSet("win7-x64", "win81-x64", "win10-x64", "win7-x86","ubuntu.16.04-x64","ubuntu.14.04-x64","centos.7-x64","opensuse.42.1-x64")]    
         [string]$Runtime,
 
-        [switch]$AppImage
+        [switch]$AppImage,
+
+        [ValidatePattern("^v\d+\.\d+\.\d+(-\w+\.\d+)?$")]
+        [ValidateNotNullOrEmpty()]
+        [string]$ReleaseTag
     )
 
     $ErrorActionPreference = 'Stop'
@@ -176,6 +217,17 @@ function Invoke-PSDockerBuild
         $params += $location
         $params += '-destination'
         $params += $outputFolder
+        if($AppImage.IsPresent)
+        {
+            $params += '-AppImage'
+        }
+
+        if($ReleaseTag)
+        {
+            $params += '-ReleaseTag'
+            $params += $ReleaseTag
+        }
+
         if($image -eq 'windowsservercore')
         {
             $params += '-Runtime'
