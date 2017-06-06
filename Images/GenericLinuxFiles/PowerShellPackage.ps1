@@ -8,8 +8,19 @@ param (
 	[string] $location = "/powershell",
     
     # Destination location of the package on docker host
-    [string] $destination = '/mnt'
+    [string] $destination = '/mnt',
+
+    [ValidatePattern("^v\d+\.\d+\.\d+(-\w+\.\d+)?$")]
+    [ValidateNotNullOrEmpty()]
+    [string]$ReleaseTag,
+    [switch]$AppImage
 )
+
+$releaseTagParam = @{}
+if($ReleaseTag)
+{
+    $releaseTagParam = @{ 'ReleaseTag' = $ReleaseTag }
+}
 
 git clone --quiet https://github.com/$fork/powershell.git -b $branch
 Push-Location
@@ -18,14 +29,28 @@ git submodule update --init --recursive --quiet
 Import-Module "$location/build.psm1"
 Start-PSBootstrap -Package -NoSudo
 $output = Split-Path -Parent (Get-PSOutput -Options (New-PSOptions -Publish))
-Start-PSBuild -Crossgen -PSModuleRestore
+Start-PSBuild -Crossgen -PSModuleRestore @releaseTagParam
 
-Start-PSPackage
+Start-PSPackage @releaseTagParam
+if($AppImage.IsPresent)
+{
+    Start-PSPackage -Type AppImage @releaseTagParam
+}
 
 Pop-Location
 
-$linuxPackages = Get-ChildItem "$location/powershell*" -Include *.deb,*.rpm,*.AppImage
+$linuxPackages = Get-ChildItem "$location/powershell*" -Include *.deb,*.rpm
+    
 foreach($linuxPackage in $linuxPackages) 
 { 
     Copy-Item "$($linuxPackage.FullName)" "$destination" -force
+}
+
+if($AppImage.IsPresent)
+{
+    $appImages = Get-ChildItem -Path "$location" -Filter "*.AppImage"
+    foreach($appImage in $appImages) 
+    { 
+        Copy-Item "$($appImage.FullName)" "$destination" -force
+    }
 }
