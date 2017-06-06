@@ -66,7 +66,7 @@ try{
     Write-Verbose "Bootstrapping powershell build..." -verbose
     Start-PSBootstrap -Force -Package
 
-    Write-Verbose "Starting powershell build..." -verbose
+    Write-Verbose "Starting powershell build for RID: $Runtime and ReleaseTag: $ReleaseTag ..." -verbose
     Start-PSBuild -Clean -CrossGen -PSModuleRestore -Runtime $Runtime -Configuration Release @releaseTagParam
 
     $pspackageParams = @{'Type'='msi'}
@@ -76,11 +76,11 @@ try{
     }
 
     Write-Verbose "Starting powershell packaging(msi)..." -verbose
-    Start-PSPackage @pspackageParams
+    Start-PSPackage @pspackageParams @releaseTagParam
 
     $pspackageParams['Type']='zip'
     Write-Verbose "Starting powershell packaging(zip)..." -verbose
-    Start-PSPackage @pspackageParams
+    Start-PSPackage @pspackageParams @releaseTagParam
 
     Write-Verbose "Exporting packages ..." -verbose
     $files= @()
