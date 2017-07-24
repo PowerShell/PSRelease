@@ -28,6 +28,8 @@ try {
     Set-Location $location
     git submodule update --init --recursive --quiet
     Import-Module "$location/build.psm1"
+    Import-Module "$location/tools/packaging"
+    
     Start-PSBootstrap -Package -NoSudo
     Start-PSBuild -Crossgen -PSModuleRestore @releaseTagParam
 
