@@ -1,12 +1,7 @@
 # Docker image file that describes an Ubuntu14.04 image with PowerShell installed from Microsoft APT Repo
 
-FROM ubuntu:trusty
+FROM microsoft/powershell:ubuntu14.04
 MAINTAINER Raghu Shantha <raghus@microsoft.com>
-
-# Setup the locale
-ENV LANG en_US.UTF-8
-ENV LC_ALL $LANG
-RUN locale-gen $LANG && update-locale
 
 # Install dependencies and clean up
 RUN apt-get update \
@@ -34,17 +29,6 @@ RUN apt-get update \
 	fuse \
 	python \	
     && rm -rf /var/lib/apt/lists/*
-
-# Import the public repository GPG keys for Microsoft
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-	
-# Register the Microsoft Ubuntu 14.04 repository
-RUN curl https://packages.microsoft.com/config/ubuntu/14.04/prod.list | tee /etc/apt/sources.list.d/microsoft.list
-
-# Install powershell from Microsoft Repo
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-	powershell   
 
 COPY PowerShellPackage.ps1 /
 
