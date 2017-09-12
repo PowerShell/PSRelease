@@ -73,7 +73,7 @@ try{
     $pspackageParams = @{'Type'='msi'}
     if ($Runtime -ne 'win10-x64')
     {
-        $pspackageParams += @{'WindowsDownLevel'=$Runtime}
+        $pspackageParams += @{'WindowsRuntime'=$Runtime}
     }
 
     Write-Verbose "Starting powershell packaging(msi)..." -verbose
