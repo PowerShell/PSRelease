@@ -103,7 +103,7 @@ function Invoke-PSDockerBuild
             $null = New-Item -Path $destination -ItemType Directory -Force
         }
 
-        $dockerContainerName = 'pswscbuild'
+        $dockerContainerName = 'pswscbuildlegacy'
 
         $volumeMapping = "${destination}:$outputFolder"
         $params = @('-i')
