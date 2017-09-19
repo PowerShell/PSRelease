@@ -1,6 +1,13 @@
 Import-Module "$PSScriptRoot/vstsBuild" -Scope Global
 Import-Module "$PSScriptRoot/dockerBasedBuild"
 Import-Module "$PSScriptRoot/dockerBasedBuild/dockerBasedBuild.common.psm1"
+
+# on pre-6.0 PowerShell $IsWindows doesn't exist, but those are always windows
+if($IsWindows -eq $null)
+{
+    $IsWindows = $true
+}
+
 # Builds a Docker container for an image
 function Invoke-PSBuildContainer
 {
