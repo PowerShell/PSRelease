@@ -36,13 +36,18 @@ param(
     $Branch
 )
 
+Write-Verbose 'In VSTS wrapper...' -Verbose
+Push-Location
 try 
 {
+    Set-Location $PSScriptRoot
+
     Import-Module "$PSScriptRoot\psrelease.psm1"
     Clear-VstsTaskState
     switch($PSCmdlet.ParameterSetName)
     {
         'BuildContainer' {
+            Write-Verbose 'Calling Build Container ...' -Verbose
             Invoke-PSBuildContainer -image $Image
         }
 
@@ -58,15 +63,17 @@ try
                 $releaseTagParam += @{ 'Branch' = $Branch }
             }
 
+            Write-Verbose 'Calling PowerShell Build ...' -Verbose            
             Invoke-PSDockerBuild -image $Image -Runtime $Runtime -AppImage:$AppImage.IsPresent @releaseTagParam
         }
 
         'PublishArtifacts' {
+            Write-Verbose 'Calling Publish Artifacts ...' -Verbose            
             Invoke-PSPublishBuildArtifact
         }
 
         default {
-            throw 'Unknow parameterset passed to vsts.ps1'
+            throw 'Unknown parameterSet passed to vsts.ps1'
         }
     }
 }
@@ -75,6 +82,7 @@ catch
     Write-VstsError -Error $_
 }
 finally{
+    Pop-Location
     Write-VstsTaskState
     exit 0
 }
