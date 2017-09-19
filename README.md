@@ -1,7 +1,12 @@
-This repo is a proxy to https://github.com/powershell/powershell for creating on-demand packages when releasing PowerShellCore.
+The repo contains the infrastructure to bulid PowerShell Core in Docker.
 
-The Jenkinsfile at the root of the repo provides directives to build and package on all supported platforms.
+The module dockerBasedBuild is the main infrastructure.  The rest of the files are legacy.
 
-The repo also has scripts to build on specific platforms.
+Note:  This is currently highly geared toward VSTS, but we are open to contribution which make it more pluggable.  The majority of the VSTS specific operations have already been seperated into a separate module.
 
-The repo is not intended to be directly used. However one can take a look at the scripts and docker images for reference.
+To use this module:
+
+1. Create a wrapper script in your repo.  See docs/examples/vstsBuild.ps1.
+1. Create Docker file(s) to build your product.  See docs/examples/Images.
+1. Create a build JSON file which describe your docker file and how to build your product.  See docs/examples/build.json
+
