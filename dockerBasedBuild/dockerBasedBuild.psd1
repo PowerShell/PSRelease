@@ -9,4 +9,3 @@
     RootModule="dockerBasedBuild.psm1"
     RequiredModules = @("vstsBuild")
 }
-    
