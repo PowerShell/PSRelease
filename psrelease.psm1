@@ -173,38 +173,15 @@ function Invoke-PSDockerBuild
 
         if($IsWindows)
         {
-            $null = Invoke-Docker -command 'container', 'cp' -params "${dockerContainerName}:$outputFolder", $env:BUILD_BINARIESDIRECTORY
+            $null = Invoke-Docker -command 'container', 'cp' -params "${dockerContainerName}:$outputFolder", $destination
             Remove-Container 
         }
+
+        Invoke-VstsPublishBuildArtifact
     } 
     catch
     {
         Write-VstsError $_
-    }
-}
-
-
-# Publishes build artifacts 
-function Invoke-PSPublishBuildArtifact
-{
-    $ErrorActionPreference = 'Continue'
-    $filter = Join-Path -Path (Get-Destination) -ChildPath '*'
-    log "Publishing artifacts: $filter"
-
-    # In VSTS, publish artifacts appropriately
-    $files = Get-ChildItem -Path $filter -Recurse | Select-Object -ExpandProperty FullName
-
-    foreach($fileName in $files)
-    {
-        $leafFileName = $(Split-path -Path $FileName -Leaf)
-
-        $extension = [System.io.path]::GetExtension($fileName)
-        if($extension -ieq '.zip')
-        {
-            Expand-Archive -Path $fileName -DestinationPath (Join-Path $env:Build_StagingDirectory -ChildPath $leafFileName)
-        }
-
-        Write-Host "##vso[artifact.upload containerfolder=results;artifactname=$leafFileName]$FileName"
     }
 }
 
