@@ -373,6 +373,18 @@ function Invoke-DockerBuild
     }
 }
 
+$script:dockerVersion
+function Get-DockerVersion
+{
+    if(!$script:dockerVersion)
+    {
+        $versionString = Invoke-Docker -Command 'version' -Params '--format', '{{.Server.Version}}' -SupressHostOutput -PassThru
+        $versionParts = $versionString.Split('-')
+        $script:dockerVersion = [Version] $versionParts[0]
+    }
+
+    return $script:dockerVersion
+}
 
 # Call Docker with appropriate result checks
 function Invoke-Docker 
@@ -449,17 +461,24 @@ function Remove-Container
         SupressHostOutput = $true
     }
 
-    # stop all running containers
-    Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}' @commonDockerParams -PassThru | 
-        Where-Object {$_ -ne $null} |
-        ConvertFrom-Json | 
-        Where-Object { $null = Invoke-Docker -Command stop -Params $_.Names  @commonDockerParams} 
+    if(Get-DockerVersion -ge [Version]'17.06')
+    {
+        Invoke-Docker -Command 'container', 'prune' -Params '--force' -SupressHostOutput
+    }
+    else 
+    {
+        # stop all running containers
+        Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}' @commonDockerParams -PassThru | 
+            Where-Object {$_ -ne $null} |
+            ConvertFrom-Json | 
+            Where-Object { $null = Invoke-Docker -Command stop -Params $_.Names  @commonDockerParams} 
 
-    # remove all containers
-    Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}', '--all' @commonDockerParams -PassThru | 
-        Where-Object {$_ -ne $null} |
-        ConvertFrom-Json | 
-        Where-Object { $null = Invoke-Docker -Command rm -Params $_.Names  @commonDockerParams} 
+        # remove all containers
+        Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}', '--all' @commonDockerParams -PassThru | 
+            Where-Object {$_ -ne $null} |
+            ConvertFrom-Json | 
+            Where-Object { $null = Invoke-Docker -Command rm -Params $_.Names  @commonDockerParams}     
+    }
 } 
 
 
