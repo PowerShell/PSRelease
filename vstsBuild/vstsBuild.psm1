@@ -110,6 +110,7 @@ function Write-VstsTaskState
 Export-ModuleMember @(
     'Invoke-VstsPublishBuildArtifact'
     'Write-VstsError'
+    'Write-VstsMessage'
     'Clear-VstsTaskState'
     'Write-VstsTaskState'
 )
