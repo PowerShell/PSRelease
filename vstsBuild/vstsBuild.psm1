@@ -1,4 +1,3 @@
-Import-Module "$PSScriptRoot\..\dockerBasedBuild\dockerBasedBuild.common.psm1"
 # VSTS task states: Succeeded|SucceededWithIssues|Failed|Cancelled|Skipped
 $succeededStateName = 'Succeeded'
 $warningStateName = 'SucceededWithIssues'
@@ -18,7 +17,7 @@ function Invoke-VstsPublishBuildArtifact
 {
     $ErrorActionPreference = 'Continue'
     $filter = Join-Path -Path (Get-Destination) -ChildPath '*'
-    log "Publishing artifacts: $filter"
+    Write-VstsMessage -message "Publishing artifacts: $filter"
 
     # In VSTS, publish artifacts appropriately
     $files = Get-ChildItem -Path $filter -Recurse | Select-Object -ExpandProperty FullName
