@@ -24,9 +24,6 @@ $script:destinationPath = $null
 
 function Get-Destination
 {
-    [cmdletbinding(DefaultParameterSetName='default')]
-    param()
-
     if(!$script:destinationPath)
     {
         $script:destinationPath = Get-TempFolder
