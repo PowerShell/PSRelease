@@ -17,7 +17,7 @@ function Invoke-VstsPublishBuildArtifact
 {
     $ErrorActionPreference = 'Continue'
     $filter = Join-Path -Path (Get-Destination) -ChildPath '*'
-    Write-VstsInformation -message "Publishing artifacts: $filter" -type
+    Write-VstsInformation -message "Publishing artifacts: $filter"
 
     # In VSTS, publish artifacts appropriately
     $files = Get-ChildItem -Path $filter -Recurse | Select-Object -ExpandProperty FullName
