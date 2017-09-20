@@ -54,7 +54,7 @@ function Invoke-Build
 
     $buildJson = Get-Content -path $buildJsonFullPath | ConvertFrom-Json
 
-    if((!$IsWindows -and !$IsLinux -and !$IsOSX) -or $IsWindows)
+    if($IsWindows)
     {
         # Windows Powershell or PowerShell Core on Windows
         foreach($buildData in $buildJson.Windows)
