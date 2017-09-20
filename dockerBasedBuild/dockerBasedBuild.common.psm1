@@ -54,7 +54,7 @@ function Invoke-BuildInDocker
 {
     param(
         [Parameter(Mandatory)]
-        [Object]$BuildData,
+        [BuildData]$BuildData,
 
         [Parameter(Mandatory)]
         [string]$RepoLocation,
@@ -508,4 +508,33 @@ function script:logerror([string]$message) {
     Write-Host -Foreground Red $message
     #reset colors for older package to at return to default after error message on a compilation error
     [console]::ResetColor()
+}
+
+# Class which describes the build data.
+class BuildData
+{
+    # Required: The name of the Build
+    [String]$Name
+
+    # Required: The location in the docker container to put the repo
+    [String]$RepoDestinationPath
+
+    # Required: The command in the container to run the build
+    # Token replacements is allowed for anything you passed in the parameters hash table  _<name>_ will be repalced with the actual value.
+    # Built-in tokens include: 
+    #   _RepoDestinationPath_ - the path in the containter where the repo was placed
+    #   _DockerVolume_ - the path to where you should put any output 
+    [String]$BuildCommand
+
+    # Optional:  Any custom docker options needed when running the build
+    [String[]]$BuildDockerOptions
+
+    # Required: The docker file used to build the image used for building
+    [String]$DockerFile
+
+    # Required: Any files that should be placed in the docker context (other than the docker file)
+    [String[]]$AdditionalContextFiles
+
+    # Required: The name that we will call the image 
+    [String]$DockerImageName
 }
