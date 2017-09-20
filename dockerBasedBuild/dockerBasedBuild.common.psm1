@@ -83,7 +83,7 @@ function Invoke-BuildInDocker
 
     Invoke-DockerBuild -ImageName $imageName -RepoLocation $RepoLocation -ContainerRepoLocation $BuildData.RepoDestinationPath -BuildCommand $BuildData.BuildCommand -Parameters $Parameters @extraBuildParams
 
-    Invoke-VstsPublishBuildArtifact
+    Invoke-VstsPublishBuildArtifact -ArtifactPath (Get-Destination)
 }
 
 # Clone a github repo and recursively init submodules

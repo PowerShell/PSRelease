@@ -15,8 +15,12 @@ $script:publishedFiles = @()
 # Publishes build artifacts 
 function Invoke-VstsPublishBuildArtifact
 {
+    param(
+        [parameter(Mandatory)]
+        [string]$ArtifactPath
+    )
     $ErrorActionPreference = 'Continue'
-    $filter = Join-Path -Path (Get-Destination) -ChildPath '*'
+    $filter = Join-Path -Path $ArtifactPath -ChildPath '*'
     Write-VstsInformation -message "Publishing artifacts: $filter"
 
     # In VSTS, publish artifacts appropriately

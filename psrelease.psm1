@@ -177,7 +177,7 @@ function Invoke-PSDockerBuild
             Remove-Container 
         }
 
-        Invoke-VstsPublishBuildArtifact
+        Invoke-VstsPublishBuildArtifact -ArtifactPath $destination
     } 
     catch
     {
