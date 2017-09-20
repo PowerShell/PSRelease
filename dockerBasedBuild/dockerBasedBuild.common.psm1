@@ -500,13 +500,13 @@ function script:Start-NativeExecution([scriptblock]$sb, [switch]$IgnoreExitcode)
 
 function script:log([string]$message) {
     Write-Host -Foreground Green $message
-    #reset colors for older package to at return to default after error message on a compilation error
+    # Reset colors to default
     [console]::ResetColor()
 }
 
 function script:logerror([string]$message) {
     Write-Host -Foreground Red $message
-    #reset colors for older package to at return to default after error message on a compilation error
+    # Reset colors to default
     [console]::ResetColor()
 }
 
