@@ -110,10 +110,7 @@ function Write-VstsInformation {
         $message
     )
 
-
-    # See VSTS documentation at https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
-    # Log task detail
-    Write-Host "##vso[task.logdetail]$message"
+    Write-Host $message
 }
 
 function Write-VstsTaskState
