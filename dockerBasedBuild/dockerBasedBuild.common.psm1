@@ -468,13 +468,13 @@ function Remove-Container
         Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}' @commonDockerParams -PassThru | 
             Where-Object {$_ -ne $null} |
             ConvertFrom-Json | 
-            Where-Object { $null = Invoke-Docker -Command stop -Params $_.Names  @commonDockerParams} 
+            ForEach-Object { $null = Invoke-Docker -Command stop -Params $_.Names  @commonDockerParams} 
 
         # remove all containers
         Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}', '--all' @commonDockerParams -PassThru | 
             Where-Object {$_ -ne $null} |
             ConvertFrom-Json | 
-            Where-Object { $null = Invoke-Docker -Command rm -Params $_.Names  @commonDockerParams}     
+            ForEach-Object { $null = Invoke-Docker -Command rm -Params $_.Names  @commonDockerParams}     
     }
 } 
 
