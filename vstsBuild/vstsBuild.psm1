@@ -17,7 +17,7 @@ function Invoke-VstsPublishBuildArtifact
 {
     $ErrorActionPreference = 'Continue'
     $filter = Join-Path -Path (Get-Destination) -ChildPath '*'
-    Write-VstsMessage -message "Publishing artifacts: $filter"
+    Write-VstsInformation -message "Publishing artifacts: $filter" -type
 
     # In VSTS, publish artifacts appropriately
     $files = Get-ChildItem -Path $filter -Recurse | Select-Object -ExpandProperty FullName
@@ -77,7 +77,7 @@ function Write-VstsError {
     }
 }
 
-
+# Log messages which potentially change job status
 function Write-VstsMessage {
     param(
         [ValidateSet("error","warning")]
@@ -97,6 +97,19 @@ function Write-VstsMessage {
     # See VSTS documentation at https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
     # Log task message
     Write-Host "##vso[task.logissue type=$type]$message"
+}
+
+# Log informational messages
+function Write-VstsInformation {
+    param(
+        [String]
+        $message
+    )
+
+
+    # See VSTS documentation at https://github.com/Microsoft/vsts-tasks/blob/master/docs/authoring/commands.md
+    # Log task detail
+    Write-Host "##vso[task.logdetail]$message"
 }
 
 function Write-VstsTaskState
