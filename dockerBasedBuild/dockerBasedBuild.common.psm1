@@ -83,7 +83,7 @@ function Invoke-BuildInDocker
 
     Invoke-DockerBuild -ImageName $imageName -RepoLocation $RepoLocation -ContainerRepoLocation $BuildData.RepoDestinationPath -BuildCommand $BuildData.BuildCommand -Parameters $Parameters @extraBuildParams
 
-    Invoke-VstsPublishBuildArtifact -ArtifactPath (Get-Destination)
+    Invoke-VstsPublishBuildArtifact -ArtifactPath (Get-Destination) -Bucket $BuildData.BinaryBucket
 }
 
 # Clone a github repo and recursively init submodules
@@ -537,4 +537,7 @@ class BuildData
 
     # Required: The name that we will call the image 
     [String]$DockerImageName
+
+    # Optional: folder to put binaries from this build in.
+    [String]$BinaryBucket = 'release'
 }

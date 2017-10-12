@@ -17,7 +17,8 @@ function Invoke-VstsPublishBuildArtifact
 {
     param(
         [parameter(Mandatory)]
-        [string]$ArtifactPath
+        [string]$ArtifactPath,
+        [string]$Bucket = 'release'
     )
     $ErrorActionPreference = 'Continue'
     $filter = Join-Path -Path $ArtifactPath -ChildPath '*'
@@ -25,6 +26,11 @@ function Invoke-VstsPublishBuildArtifact
 
     # In VSTS, publish artifacts appropriately
     $files = Get-ChildItem -Path $filter -Recurse | Select-Object -ExpandProperty FullName
+    $destinationPath = Join-Path $env:Build_StagingDirectory -ChildPath $Bucket
+    if(-not (Test-Path $destinationPath))
+    {
+        $null = New-Item -Path $destinationPath -ItemType Directory
+    }
 
     foreach($fileName in $files)
     {
@@ -36,7 +42,7 @@ function Invoke-VstsPublishBuildArtifact
             $extension = [System.io.path]::GetExtension($fileName)
             if($extension -ieq '.zip')
             {
-                Expand-Archive -Path $fileName -DestinationPath (Join-Path $env:Build_StagingDirectory -ChildPath $leafFileName)
+                Expand-Archive -Path $fileName -DestinationPath (Join-Path $destinationPath -ChildPath $leafFileName)
             }
 
             Write-Host "##vso[artifact.upload containerfolder=results;artifactname=$leafFileName]$FileName"
