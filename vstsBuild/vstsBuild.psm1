@@ -11,6 +11,44 @@ function Clear-VstsTaskState
     $script:taskstate = $succeededStateName
 }
 
+function Get-TempFolder
+{
+    $tempPath = [System.IO.Path]::GetTempPath()
+    # Use the agent temp on VSTS which is cleanup between builds (the user temp is not)
+    if($env:AGENT_TEMPDIRECTORY)
+    {
+        $tempPath = $env:AGENT_TEMPDIRECTORY
+    }
+
+    $tempFolder = Join-Path -Path $tempPath -ChildPath ([System.IO.Path]::GetRandomFileName())
+    if(!(test-path $tempFolder))
+    {
+        $null = New-Item -Path $tempFolder -ItemType Directory
+    }
+
+    return $tempFolder
+}
+
+$script:AlternateStagingDirectory = $null
+function Get-StagingDirectory
+{
+    # environment variable are documented here:
+    # https://docs.microsoft.com/en-us/vsts/build-release/concepts/definitions/build/variables?tabs=batch
+    if($env:BUILD_STAGINGDIRECTORY)
+    {
+        return $env:BUILD_STAGINGDIRECTORY
+    }
+    else {
+        if(!$script:AlternateStagingDirectory)
+        {
+            Write-VstsInformation "Cannot find staging directory, logging environment"
+            Get-ChildItem env: | ForEach-Object { Write-VstsInformation -message $_}
+            $script:AlternateStagingDirectory = Get-TempFolder
+        }
+        return $script:AlternateStagingDirectory
+    }
+}
+
 $script:publishedFiles = @()
 # Publishes build artifacts 
 function Invoke-VstsPublishBuildArtifact
@@ -26,7 +64,7 @@ function Invoke-VstsPublishBuildArtifact
 
     # In VSTS, publish artifacts appropriately
     $files = Get-ChildItem -Path $filter -Recurse | Select-Object -ExpandProperty FullName
-    $destinationPath = Join-Path $env:Build_StagingDirectory -ChildPath $Bucket
+    $destinationPath = Join-Path (Get-StagingDirectory) -ChildPath $Bucket
     if(-not (Test-Path $destinationPath))
     {
         $null = New-Item -Path $destinationPath -ItemType Directory
