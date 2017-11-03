@@ -50,7 +50,7 @@ function Get-StagingDirectory
 }
 
 $script:publishedFiles = @()
-# Publishes build artifacts 
+# Publishes build artifacts
 function Invoke-VstsPublishBuildArtifact
 {
     param(
@@ -90,7 +90,7 @@ function Invoke-VstsPublishBuildArtifact
                 {
                     Write-VstsInformation -message "Setting VSTS variable '$Variable' to '$unzipPath'"
                     # Sets a VSTS variable for use in future build steps.
-                    Write-Host "##vso[task.setvariable variable=$Variable]$unzipPath"                    
+                    Write-Host "##vso[task.setvariable variable=$Variable]$unzipPath"
                     # Set a variable in the current process.  PowerShell will not pickup the variable until the process is restarted otherwise.
                     Set-Item env:\$Variable -Value $unzipPath
                 }
