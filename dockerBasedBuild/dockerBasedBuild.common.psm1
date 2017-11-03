@@ -73,17 +73,33 @@ function Invoke-BuildInDocker
     $imageName = $BuildData.DockerImageName
 
     $contextPath = Get-TempFolder
-    Invoke-BuildContainer -DockerFilePath $dockerFilePath -ContextPath $contextPath -AdditionalContextFiles $additionalContextFiles -ImageName $imageName -AddRepo -RepoLocation $RepoLocation -ContainerRepoLocation $BuildData.RepoDestinationPath 
+    Invoke-BuildContainer -DockerFilePath $dockerFilePath -ContextPath $contextPath -AdditionalContextFiles $additionalContextFiles -ImageName $imageName -AddRepo -RepoLocation $RepoLocation -ContainerRepoLocation $BuildData.RepoDestinationPath
 
     $extraBuildParams = @{}
-    if($BuildData.BuildDockerOptions)
+    if ($BuildData.BuildDockerOptions)
     {
         $extraBuildParams['DockerOptions'] = $BuildData.BuildDockerOptions
     }
 
     Invoke-DockerBuild -ImageName $imageName -RepoLocation $RepoLocation -ContainerRepoLocation $BuildData.RepoDestinationPath -BuildCommand $BuildData.BuildCommand -Parameters $Parameters @extraBuildParams
 
-    Invoke-VstsPublishBuildArtifact -ArtifactPath (Get-Destination) -Bucket $BuildData.BinaryBucket
+    $publishParams = @{}
+    if ($BuildData.VariableForExtractedBinariesPath)
+    {
+        if($BuildData.BinariesExpected -ne 1)
+        {
+            Write-Warning 'To use VariableForExtractedBinariesPath set BinariesExpected to 1'
+        }
+
+        $publishParams['Variable'] = $BuildData.VariableForExtractedBinariesPath
+    }
+
+    if ($BuildData.BinariesExpected -gt 0)
+    {
+        $publishParams['ExpectedCount'] = $BuildData.BinariesExpected
+    }
+
+    Invoke-VstsPublishBuildArtifact -ArtifactPath (Get-Destination) -Bucket $BuildData.BinaryBucket @publishParams
 }
 
 # Clone a github repo and recursively init submodules
@@ -128,11 +144,11 @@ function Invoke-CleanRepo
     $gitBinFullPath = Get-GitPath
     Push-Location
     Set-Location $RepoLocation
-    try 
+    try
     {
-        Start-NativeExecution -sb {& $gitBinFullPath clean -fdX $RepoLocation}    
+        Start-NativeExecution -sb {& $gitBinFullPath clean -fdX $RepoLocation}
     }
-    finally 
+    finally
     {
         Pop-Location
     }
@@ -146,8 +162,8 @@ function Get-GitPath
         return $script:gitPath
     }
 
-    $git = Get-Command -Name git 
-    
+    $git = Get-Command -Name git
+
     if($git)
     {
         $script:gitPath = $git.Source
@@ -161,10 +177,10 @@ function Get-GitPath
     {
         throw "Git for Windows is required to proceed. Install from 'https://git-scm.com/download/win'"
     }
-    else 
+    else
     {
         $script:gitPath = $gitBinFullPath
-        return $script:gitPath        
+        return $script:gitPath
     }
 }
 
@@ -210,12 +226,12 @@ function Invoke-BuildContainer
             Copy-Item -Path $dockerFilePath -Destination $contextPath
             foreach($additionalContextFile in $AdditionalContextFiles)
             {
-                Copy-Item -Path $additionalContextFile -Destination $contextPath 
+                Copy-Item -Path $additionalContextFile -Destination $contextPath
             }
         }
-        else 
+        else
         {
-            $runtimeContextPath = Split-Path -Path $DockerFilePath    
+            $runtimeContextPath = Split-Path -Path $DockerFilePath
         }
 
         $dockerBuildImageName = $ImageName
@@ -244,16 +260,16 @@ function Invoke-BuildContainer
 
             $repoPath = Join-Path -Path $dockerBuildFolder -ChildPath $repoFolderName
 
-            try 
+            try
             {
                 $addRepoDockerFilePath = Join-Path -Path $dockerBuildFolder -ChildPath 'Dockerfile'
-                
+
                 # TODO: redo using symbolic links, but hit many isssue using them.
                 log "Copying repo from: $RepoLocation to: $RepoPath"
                 Copy-item -path $RepoLocation -Destination $RepoPath -Recurse
 
                 Invoke-CleanRepo -RepoLocation $repoPath
-                
+
                 $psreleaseStrings.dockerfile -f $dockerBuildImageName, $repoFolderName, $ContainerRepoLocation | Out-File -FilePath $addRepoDockerFilePath -Encoding ascii -Force
 
                 $null = Invoke-Docker -command build -params '--tag', $ImageName, $dockerBuildFolder
@@ -266,7 +282,7 @@ function Invoke-BuildContainer
                 }
             }
         }
-    } 
+    }
     catch
     {
         Write-VstsError $_
@@ -298,7 +314,7 @@ function Invoke-DockerBuild
 
         [hashtable] $Parameters
     )
-    
+
     if($Parameters)
     {
         $runtimeParameters = $Parameters.Clone()
@@ -312,23 +328,23 @@ function Invoke-DockerBuild
     $ErrorActionPreference = 'Stop'
 
     try {
-        
+
         if($IsWindows)
         {
             $outputFolder = 'C:\out'
         }
-        else 
+        else
         {
             $outputFolder = '/mnt'
         }
         $runtimeParameters['DockerVolume']=$outputFolder
-        
+
         if(!(Test-Path $destination))
         {
             $null = New-Item -Path $destination -ItemType Directory -Force
         }
 
-        $dockerContainerName = 'pswscbuild'       
+        $dockerContainerName = 'pswscbuild'
 
         $params = @('-i', '--name', $dockerContainerName)
 
@@ -362,8 +378,8 @@ function Invoke-DockerBuild
         $null = Invoke-Docker -command 'container', 'cp' -params "${dockerContainerName}:$outputFolder", $Destination
 
         # We are done with the containers, remove them
-        Remove-Container 
-    } 
+        Remove-Container
+    }
     catch
     {
         Write-VstsError $_
@@ -384,7 +400,7 @@ function Get-DockerVersion
 }
 
 # Call Docker with appropriate result checks
-function Invoke-Docker 
+function Invoke-Docker
 {
     param(
         [Parameter(Mandatory=$true)]
@@ -410,7 +426,7 @@ function Invoke-Docker
     {
         $result = &'docker' $command $params 2>&1
     }
-    else 
+    else
     {
         &'docker' $command $params 2>&1 | Tee-Object -Variable result -ErrorAction SilentlyContinue -ErrorVariable dockerErrors | Out-String -Stream -ErrorAction SilentlyContinue | Write-Host -ErrorAction SilentlyContinue
     }
@@ -442,7 +458,7 @@ function Invoke-Docker
     {
         return $false
     }
-    
+
     return $true
 }
 
@@ -462,21 +478,21 @@ function Remove-Container
     {
         Invoke-Docker -Command 'container', 'prune' -Params '--force' -SupressHostOutput
     }
-    else 
+    else
     {
         # stop all running containers
-        Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}' @commonDockerParams -PassThru | 
+        Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}' @commonDockerParams -PassThru |
             Where-Object {$_ -ne $null} |
-            ConvertFrom-Json | 
-            ForEach-Object { $null = Invoke-Docker -Command stop -Params $_.Names  @commonDockerParams} 
+            ConvertFrom-Json |
+            ForEach-Object { $null = Invoke-Docker -Command stop -Params $_.Names  @commonDockerParams}
 
         # remove all containers
-        Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}', '--all' @commonDockerParams -PassThru | 
+        Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}', '--all' @commonDockerParams -PassThru |
             Where-Object {$_ -ne $null} |
-            ConvertFrom-Json | 
-            ForEach-Object { $null = Invoke-Docker -Command rm -Params $_.Names  @commonDockerParams}     
+            ConvertFrom-Json |
+            ForEach-Object { $null = Invoke-Docker -Command rm -Params $_.Names  @commonDockerParams}
     }
-} 
+}
 
 
 # this function wraps native command Execution
@@ -521,9 +537,9 @@ class BuildData
 
     # Required: The command in the container to run the build
     # Token replacements is allowed for anything you passed in the parameters hash table  _<name>_ will be repalced with the actual value.
-    # Built-in tokens include: 
+    # Built-in tokens include:
     #   _RepoDestinationPath_ - the path in the containter where the repo was placed
-    #   _DockerVolume_ - the path to where you should put any output 
+    #   _DockerVolume_ - the path to where you should put any output
     [String]$BuildCommand
 
     # Optional:  Any custom docker options needed when running the build
@@ -535,9 +551,15 @@ class BuildData
     # Required: Any files that should be placed in the docker context (other than the docker file)
     [String[]]$AdditionalContextFiles
 
-    # Required: The name that we will call the image 
+    # Required: The name that we will call the image
     [String]$DockerImageName
 
     # Optional: folder to put binaries from this build in.
     [String]$BinaryBucket = 'release'
+
+    # Optional: the number of expected binaries from the build.
+    [Int]$BinariesExpected = -1
+
+    # Optional: The name of a variable to set for the path to any extracted binaries.
+    [String]$VariableForExtractedBinariesPath
 }
