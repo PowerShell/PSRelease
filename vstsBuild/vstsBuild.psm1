@@ -56,7 +56,9 @@ function Invoke-VstsPublishBuildArtifact
     param(
         [parameter(Mandatory)]
         [string]$ArtifactPath,
-        [string]$Bucket = 'release'
+        [string]$Bucket = 'release',
+        [string]$Variable,
+        [int]$ExpectedCount = -1
     )
     $ErrorActionPreference = 'Continue'
     $filter = Join-Path -Path $ArtifactPath -ChildPath '*'
@@ -80,12 +82,23 @@ function Invoke-VstsPublishBuildArtifact
             $extension = [System.io.path]::GetExtension($fileName)
             if($extension -ieq '.zip')
             {
-                Expand-Archive -Path $fileName -DestinationPath (Join-Path $destinationPath -ChildPath $leafFileName)
+                $unzipPath = (Join-Path $destinationPath -ChildPath $leafFileName)
+                if($Variable)
+                {
+                    Write-VstsInformation -message "Setting VSTS variable '$Variable' to '$unzipPath'"
+                    Write-Host "##vso[task.setvariable variable=$Variable]$unzipPath"                    
+                }
+                Expand-Archive -Path $fileName -DestinationPath $unzipPath
             }
 
             Write-Host "##vso[artifact.upload containerfolder=results;artifactname=$leafFileName]$FileName"
             $script:publishedFiles += $fileName
         }
+    }
+
+    if($ExpectedCount -ne -1 -and $files.Count -ne $ExpectedCount)
+    {
+        throw "Build did not produce the expected number of binaries.  $($files.count) were produced instead of $ExpectedCount."
     }
 }
 
