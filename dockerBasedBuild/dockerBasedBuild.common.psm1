@@ -94,7 +94,7 @@ function Invoke-BuildInDocker
         $publishParams['Variable'] = $BuildData.VariableForExtractedBinariesPath
     }
 
-    if ($BuildData.BinariesExpected)
+    if ($BuildData.BinariesExpected -gt 0)
     {
         $publishParams['ExpectedCount'] = $BuildData.BinariesExpected
     }

@@ -54,10 +54,13 @@ $script:publishedFiles = @()
 function Invoke-VstsPublishBuildArtifact
 {
     param(
-        [parameter(Mandatory)]
+        [parameter(Mandatory,HelpMessage="Path to publish artifacts from.")]
         [string]$ArtifactPath,
+        [parameter(HelpMessage="The folder to same artifacts to.")]
         [string]$Bucket = 'release',
+        [parameter(HelpMessage="If an artifact is unzipped, set a variable to the destination path with this name.  Only supported with  '-ExpectedWount 1'")]
         [string]$Variable,
+        [parameter(HelpMessage="Expected Artifact Count.  Will throw if the count does not match.  Not specified or -1 will ignore this parameter.")]
         [int]$ExpectedCount = -1
     )
     $ErrorActionPreference = 'Continue'
@@ -86,7 +89,10 @@ function Invoke-VstsPublishBuildArtifact
                 if($Variable)
                 {
                     Write-VstsInformation -message "Setting VSTS variable '$Variable' to '$unzipPath'"
+                    # Sets a VSTS variable for use in future build steps.
                     Write-Host "##vso[task.setvariable variable=$Variable]$unzipPath"                    
+                    # Set a variable in the current process.  PowerShell will not pickup the variable until the process is restarted otherwise.
+                    Set-Item env:\$Variable -Value $unzipPath
                 }
                 Expand-Archive -Path $fileName -DestinationPath $unzipPath
             }
