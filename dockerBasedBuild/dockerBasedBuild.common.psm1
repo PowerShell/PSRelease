@@ -76,14 +76,30 @@ function Invoke-BuildInDocker
     Invoke-BuildContainer -DockerFilePath $dockerFilePath -ContextPath $contextPath -AdditionalContextFiles $additionalContextFiles -ImageName $imageName -AddRepo -RepoLocation $RepoLocation -ContainerRepoLocation $BuildData.RepoDestinationPath 
 
     $extraBuildParams = @{}
-    if($BuildData.BuildDockerOptions)
+    if ($BuildData.BuildDockerOptions)
     {
         $extraBuildParams['DockerOptions'] = $BuildData.BuildDockerOptions
     }
 
     Invoke-DockerBuild -ImageName $imageName -RepoLocation $RepoLocation -ContainerRepoLocation $BuildData.RepoDestinationPath -BuildCommand $BuildData.BuildCommand -Parameters $Parameters @extraBuildParams
 
-    Invoke-VstsPublishBuildArtifact -ArtifactPath (Get-Destination) -Bucket $BuildData.BinaryBucket
+    $publishParams = @{}
+    if ($BuildData.VariableForExtractedBinariesPath)
+    {
+        if($BuildData.BinariesExpected -ne 1)
+        {
+            Write-Warning 'To use VariableForExtractedBinariesPath set BinariesExpected to 1'
+        }
+
+        $publishParams['Variable'] = $BuildData.VariableForExtractedBinariesPath
+    }
+
+    if ($BuildData.BinariesExpected)
+    {
+        $publishParams['ExpectedCount'] = $BuildData.BinariesExpected
+    }
+
+    Invoke-VstsPublishBuildArtifact -ArtifactPath (Get-Destination) -Bucket $BuildData.BinaryBucket @publishParams
 }
 
 # Clone a github repo and recursively init submodules
@@ -540,4 +556,10 @@ class BuildData
 
     # Optional: folder to put binaries from this build in.
     [String]$BinaryBucket = 'release'
+
+    # Optional: the number of expected binaries from the build.
+    [Int]$BinariesExpected = -1
+
+    # Optional: The name of a variable to set for the path to any extracted binaries.
+    [String]$VariableForExtractedBinariesPath
 }
