@@ -36,7 +36,9 @@ function Invoke-Build
 
         [hashtable]$Parameters,
 
-        [String]$Name
+        [String]$Name,
+        
+        [string[]]$AdditionalFiles
     )
 
     switch($PSCmdlet.ParameterSetName)
@@ -61,7 +63,7 @@ function Invoke-Build
         {
             if(!$Name -or $buildData.Name -eq $Name)
             {
-                Invoke-BuildInDocker -RepoLocation $repoLocation -BuildData $buildData -Parameters $Parameters
+                Invoke-BuildInDocker -RepoLocation $repoLocation -BuildData $buildData -Parameters $Parameters -AdditionalFiles $AdditionalFiles
             }
         }
     } 
@@ -70,7 +72,7 @@ function Invoke-Build
         {
             if(!$Name -or $buildData.Name -eq $Name)
             {
-                Invoke-BuildInDocker -RepoLocation $repoLocation -BuildData $buildData -Parameters $Parameters
+                Invoke-BuildInDocker -RepoLocation $repoLocation -BuildData $buildData -Parameters $Parameters -AdditionalFiles $AdditionalFiles
             }
         }
     }
