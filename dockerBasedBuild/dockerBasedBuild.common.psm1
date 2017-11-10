@@ -287,6 +287,7 @@ function Invoke-BuildContainer
                 # Add additional files to the repo after we have cleaned it
                 foreach($file in $AdditionalFiles)
                 {
+                    log "coping $file to $repoPath"
                     Copy-Item -Path $file -Destination $repoPath
                 }
 
