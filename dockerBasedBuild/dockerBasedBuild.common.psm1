@@ -59,7 +59,9 @@ function Invoke-BuildInDocker
         [Parameter(Mandatory)]
         [string]$RepoLocation,
 
-        [hashtable]$Parameters
+        [hashtable]$Parameters,
+
+        [string[]]$AdditionalFiles
     )
 
     log "Running Build $($BuildData.Name)"
@@ -73,7 +75,15 @@ function Invoke-BuildInDocker
     $imageName = $BuildData.DockerImageName
 
     $contextPath = Get-TempFolder
-    Invoke-BuildContainer -DockerFilePath $dockerFilePath -ContextPath $contextPath -AdditionalContextFiles $additionalContextFiles -ImageName $imageName -AddRepo -RepoLocation $RepoLocation -ContainerRepoLocation $BuildData.RepoDestinationPath
+    Invoke-BuildContainer `
+        -DockerFilePath $dockerFilePath `
+        -ContextPath $contextPath `
+        -AdditionalContextFiles $additionalContextFiles `
+        -ImageName $imageName `
+        -AddRepo `
+        -RepoLocation $RepoLocation `
+        -ContainerRepoLocation $BuildData.RepoDestinationPath `
+        -AdditionalFiles $AdditionalFiles
 
     $extraBuildParams = @{}
     if ($BuildData.BuildDockerOptions)
@@ -213,7 +223,11 @@ function Invoke-BuildContainer
 
         [Parameter(ParameterSetName='addrepo',Mandatory)]
         [string]
-        $ContainerRepoLocation
+        $ContainerRepoLocation,
+
+        [Parameter(ParameterSetName='addrepo')]
+        [string[]]
+        $AdditionalFiles
     )
 
     $ErrorActionPreference = 'Stop'
@@ -269,6 +283,13 @@ function Invoke-BuildContainer
                 Copy-item -path $RepoLocation -Destination $RepoPath -Recurse
 
                 Invoke-CleanRepo -RepoLocation $repoPath
+                
+                # Add additional files to the repo after we have cleaned it
+                foreach($file in $AdditionalFiles)
+                {
+                    log "coping $file to $repoPath"
+                    Copy-Item -Path $file -Destination $repoPath
+                }
 
                 $psreleaseStrings.dockerfile -f $dockerBuildImageName, $repoFolderName, $ContainerRepoLocation | Out-File -FilePath $addRepoDockerFilePath -Encoding ascii -Force
 
