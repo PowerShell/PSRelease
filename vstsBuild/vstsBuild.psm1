@@ -84,6 +84,7 @@ function Publish-VstsBuildArtifact
 
             $extension = [System.IO.Path]::GetExtension($leafFileName)
             $nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($leafFileName)
+            # Only expand the symbol '.zip' package
             if($extension -ieq '.zip' -and $nameWithoutExtension.Contains("symbols"))
             {
                 $unzipPath = (Join-Path $destinationPath -ChildPath $nameWithoutExtension)
