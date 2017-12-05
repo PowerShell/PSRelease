@@ -67,7 +67,7 @@ function Invoke-Build
             }
         }
     } 
-    elseif ($IsLinux -or $IsOSX) {
+    elseif ($IsLinux -or $IsMacOS) {
         foreach($buildData in $buildJson.Linux)
         {
             if(!$Name -or $buildData.Name -eq $Name)
