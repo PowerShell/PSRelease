@@ -99,7 +99,7 @@ function Publish-VstsBuildArtifact
                 Expand-Archive -Path $fileName -DestinationPath $unzipPath
             }
 
-            Write-Host "##vso[artifact.upload containerfolder=results;artifactname=$leafFileName]$fileName"
+            Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$leafFileName]$fileName"
             $script:publishedFiles += $fileName
         }
     }
