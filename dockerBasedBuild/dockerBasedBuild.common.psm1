@@ -75,7 +75,7 @@ function Invoke-BuildInDocker
     $imageName = $BuildData.DockerImageName
 
     $contextPath = Get-TempFolder
-    Invoke-BuildContainer `
+    New-DockerImage `
         -DockerFilePath $dockerFilePath `
         -ContextPath $contextPath `
         -AdditionalContextFiles $additionalContextFiles `
@@ -96,20 +96,20 @@ function Invoke-BuildInDocker
     $publishParams = @{}
     if ($BuildData.VariableForExtractedBinariesPath)
     {
-        if($BuildData.BinariesExpected -ne 1)
+        if($BuildData.ArtifactsExpected -ne 1)
         {
-            Write-Warning 'To use VariableForExtractedBinariesPath set BinariesExpected to 1'
+            Write-Warning 'To use VariableForExtractedBinariesPath set ArtifactsExpected to 1'
         }
 
         $publishParams['Variable'] = $BuildData.VariableForExtractedBinariesPath
     }
 
-    if ($BuildData.BinariesExpected -gt 0)
+    if ($BuildData.ArtifactsExpected -gt 0)
     {
-        $publishParams['ExpectedCount'] = $BuildData.BinariesExpected
+        $publishParams['ExpectedCount'] = $BuildData.ArtifactsExpected
     }
 
-    Invoke-VstsPublishBuildArtifact -ArtifactPath (Get-Destination) -Bucket $BuildData.BinaryBucket @publishParams
+    Publish-VstsBuildArtifact -ArtifactPath (Get-Destination) -Bucket $BuildData.BinaryBucket @publishParams
 }
 
 # Clone a github repo and recursively init submodules
@@ -194,8 +194,8 @@ function Get-GitPath
     }
 }
 
-# Builds a Docker container for an image
-function Invoke-BuildContainer
+# Builds a Docker image for the build
+function New-DockerImage
 {
     [cmdletbinding(DefaultParameterSetName='default')]
     param(
@@ -266,8 +266,6 @@ function Invoke-BuildContainer
 
         if($AddRepo.IsPresent)
         {
-            $dockerContainerName = 'pswsctemp'
-
             $repoFolderName = 'repolink'
 
             $dockerBuildFolder = Get-TempFolder
@@ -310,7 +308,8 @@ function Invoke-BuildContainer
     }
 }
 
-# Builds a Docker container
+# Run the build in a Docker container.
+# When the build finishes, copy artifacts from the container to the destination.
 function Invoke-DockerBuild
 {
     param(
@@ -579,7 +578,7 @@ class BuildData
     [String]$BinaryBucket = 'release'
 
     # Optional: the number of expected binaries from the build.
-    [Int]$BinariesExpected = -1
+    [Int]$ArtifactsExpected = -1
 
     # Optional: The name of a variable to set for the path to any extracted binaries.
     [String]$VariableForExtractedBinariesPath

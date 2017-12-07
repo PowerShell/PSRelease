@@ -51,16 +51,16 @@ function Get-StagingDirectory
 
 $script:publishedFiles = @()
 # Publishes build artifacts
-function Invoke-VstsPublishBuildArtifact
+function Publish-VstsBuildArtifact
 {
     param(
         [parameter(Mandatory,HelpMessage="Path to publish artifacts from.")]
         [string]$ArtifactPath,
         [parameter(HelpMessage="The folder to same artifacts to.")]
         [string]$Bucket = 'release',
-        [parameter(HelpMessage="If an artifact is unzipped, set a variable to the destination path with this name.  Only supported with  '-ExpectedWount 1'")]
+        [parameter(HelpMessage="If an artifact is unzipped, set a variable to the destination path with this name. Only supported with '-ExpectedCount 1'")]
         [string]$Variable,
-        [parameter(HelpMessage="Expected Artifact Count.  Will throw if the count does not match.  Not specified or -1 will ignore this parameter.")]
+        [parameter(HelpMessage="Expected Artifact Count. Will throw if the count does not match. Not specified or -1 will ignore this parameter.")]
         [int]$ExpectedCount = -1
     )
     $ErrorActionPreference = 'Continue'
@@ -80,31 +80,33 @@ function Invoke-VstsPublishBuildArtifact
         # Only publish files once
         if($script:publishedFiles -inotcontains $fileName)
         {
-            $leafFileName = $(Split-path -Path $FileName -Leaf)
+            $leafFileName = $(Split-path -Path $fileName -Leaf)
 
-            $extension = [System.io.path]::GetExtension($fileName)
-            if($extension -ieq '.zip')
+            $extension = [System.IO.Path]::GetExtension($leafFileName)
+            $nameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($leafFileName)
+            # Only expand the symbol '.zip' package
+            if($extension -ieq '.zip' -and $nameWithoutExtension.Contains("symbols"))
             {
-                $unzipPath = (Join-Path $destinationPath -ChildPath $leafFileName)
+                $unzipPath = (Join-Path $destinationPath -ChildPath $nameWithoutExtension)
                 if($Variable)
                 {
                     Write-VstsInformation -message "Setting VSTS variable '$Variable' to '$unzipPath'"
                     # Sets a VSTS variable for use in future build steps.
                     Write-Host "##vso[task.setvariable variable=$Variable]$unzipPath"
-                    # Set a variable in the current process.  PowerShell will not pickup the variable until the process is restarted otherwise.
+                    # Set a variable in the current process. PowerShell will not pickup the variable until the process is restarted otherwise.
                     Set-Item env:\$Variable -Value $unzipPath
                 }
                 Expand-Archive -Path $fileName -DestinationPath $unzipPath
             }
 
-            Write-Host "##vso[artifact.upload containerfolder=results;artifactname=$leafFileName]$FileName"
+            Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$leafFileName]$fileName"
             $script:publishedFiles += $fileName
         }
     }
 
     if($ExpectedCount -ne -1 -and $files.Count -ne $ExpectedCount)
     {
-        throw "Build did not produce the expected number of binaries.  $($files.count) were produced instead of $ExpectedCount."
+        throw "Build did not produce the expected number of binaries. $($files.count) were produced instead of $ExpectedCount."
     }
 }
 
@@ -184,7 +186,7 @@ function Write-VstsTaskState
 }
 
 Export-ModuleMember @(
-    'Invoke-VstsPublishBuildArtifact'
+    'Publish-VstsBuildArtifact'
     'Write-VstsError'
     'Write-VstsMessage'
     'Clear-VstsTaskState'
