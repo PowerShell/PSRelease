@@ -15,3 +15,7 @@ Note:  This is currently highly geared toward VSTS, but we are open to contribut
 ## Other Examples
 
 - [VSCode-Powershell](https://github.com/PowerShell/vscode-powershell/blob/master/tools/releaseBuild)
+
+## Self-Paced Docker Training
+
+- [Self-Packed Docker Training](http://training.play-with-docker.com/)
