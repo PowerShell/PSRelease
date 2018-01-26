@@ -19,3 +19,4 @@ Note:  This is currently highly geared toward VSTS, but we are open to contribut
 ## Self-Paced Docker Training
 
 - [Self-Packed Docker Training](http://training.play-with-docker.com/)
+  - I recommend the IT Pro Training.  The developer training is focused on running web sites in Docker.
