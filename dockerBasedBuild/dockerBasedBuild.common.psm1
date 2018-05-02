@@ -109,6 +109,11 @@ function Invoke-BuildInDocker
         $publishParams['ExpectedCount'] = $BuildData.ArtifactsExpected
     }
 
+    if ($BuildData.PublishAsFolder)
+    {
+        $publishParams['PublishAsFolder'] = $true
+    }
+
     Publish-VstsBuildArtifact -ArtifactPath (Get-Destination) -Bucket $BuildData.BinaryBucket @publishParams
 }
 
@@ -576,6 +581,9 @@ class BuildData
 
     # Optional: folder to put binaries from this build in.
     [String]$BinaryBucket = 'release'
+
+    # Optional: Publish Artifacts as a folder (works more reliably)
+    [Bool]$PublishAsFolder = $false
 
     # Optional: the number of expected binaries from the build.
     [Int]$ArtifactsExpected = -1

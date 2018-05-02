@@ -69,7 +69,7 @@ function Publish-VstsBuildArtifact
     $filter = Join-Path -Path $ArtifactPath -ChildPath '*'
     Write-VstsInformation -message "Publishing artifacts: $filter"
 
-    if($PublishAsFolder.IsPresent)
+    if ($PublishAsFolder.IsPresent)
     {
         $artifactDir = Get-Item -Path $ArtifactPath -ErrorAction SilentlyContinue
         if(!$artifactDir -or $artifactDir -isnot [System.IO.DirectoryInfo])
@@ -82,6 +82,7 @@ function Publish-VstsBuildArtifact
 
         Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$name]$fullName"
     }
+
     # In VSTS, publish artifacts appropriately
     $files = Get-ChildItem -Path $filter -Recurse | Select-Object -ExpandProperty FullName
     $destinationPath = Join-Path (Get-StagingDirectory) -ChildPath $Bucket
