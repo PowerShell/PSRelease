@@ -61,11 +61,27 @@ function Publish-VstsBuildArtifact
         [parameter(HelpMessage="If an artifact is unzipped, set a variable to the destination path with this name. Only supported with '-ExpectedCount 1'")]
         [string]$Variable,
         [parameter(HelpMessage="Expected Artifact Count. Will throw if the count does not match. Not specified or -1 will ignore this parameter.")]
-        [int]$ExpectedCount = -1
+        [int]$ExpectedCount = -1,
+        [parameter(HelpMessage="Publish the artifacts as a single folder rather than individual files")]
+        [Switch]$PublishAsFolder
     )
     $ErrorActionPreference = 'Continue'
     $filter = Join-Path -Path $ArtifactPath -ChildPath '*'
     Write-VstsInformation -message "Publishing artifacts: $filter"
+
+    if ($PublishAsFolder.IsPresent)
+    {
+        $artifactDir = Get-Item -Path $ArtifactPath -ErrorAction SilentlyContinue
+        if(!$artifactDir -or $artifactDir -isnot [System.IO.DirectoryInfo])
+        {
+            Write-Error -Message "-ArtifactPath must be a folder which exists" -ErrorAction Stop 
+        }
+
+        $name = $artifactDir.Name
+        $fullName = $artifactDir.FullName
+
+        Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$name]$fullName"
+    }
 
     # In VSTS, publish artifacts appropriately
     $files = Get-ChildItem -Path $filter -Recurse | Select-Object -ExpandProperty FullName
@@ -99,7 +115,11 @@ function Publish-VstsBuildArtifact
                 Expand-Archive -Path $fileName -DestinationPath $unzipPath
             }
 
-            Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$leafFileName]$fileName"
+            if(!$PublishAsFolder.IsPresent)
+            {
+                Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$leafFileName]$fileName"
+            }
+
             $script:publishedFiles += $fileName
         }
     }
