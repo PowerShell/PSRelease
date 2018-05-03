@@ -177,7 +177,7 @@ function Get-GitPath
         return $script:gitPath
     }
 
-    $git = Get-Command -Name git
+    $git = Get-Command -Name git -CommandType Application | Select-Object -First 1
 
     if($git)
     {
