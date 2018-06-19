@@ -291,7 +291,7 @@ function New-DockerImage
                 foreach($file in $AdditionalFiles)
                 {
                     log "coping $file to $repoPath"
-                    Copy-Item -Path $file -Destination $repoPath
+                    Copy-Item -Path $file -Destination $repoPath -Recurse
                 }
 
                 $psreleaseStrings.dockerfile -f $dockerBuildImageName, $repoFolderName, $ContainerRepoLocation | Out-File -FilePath $addRepoDockerFilePath -Encoding ascii -Force
