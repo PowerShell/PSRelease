@@ -63,7 +63,9 @@ function Publish-VstsBuildArtifact
         [parameter(HelpMessage="Expected Artifact Count. Will throw if the count does not match. Not specified or -1 will ignore this parameter.")]
         [int]$ExpectedCount = -1,
         [parameter(HelpMessage="Publish the artifacts as a single folder rather than individual files")]
-        [Switch]$PublishAsFolder
+        [Switch]$PublishAsFolder,
+        [parameter(HelpMessage="Make multiple files published appear as a folder in VSTS")]
+        [Switch]$ArtifactAsFolder
     )
     $ErrorActionPreference = 'Continue'
     $filter = Join-Path -Path $ArtifactPath -ChildPath '*'
@@ -77,10 +79,9 @@ function Publish-VstsBuildArtifact
             Write-Error -Message "-ArtifactPath must be a folder which exists" -ErrorAction Stop 
         }
 
-        $name = $artifactDir.Name
         $fullName = $artifactDir.FullName
 
-        Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$name]$fullName"
+        Publish-VstsArtifact -Path $fullName -Bucket $Bucket -ArtifactAsFolder:$ArtifactAsFolder.IsPresent
     }
 
     # In VSTS, publish artifacts appropriately
@@ -117,7 +118,7 @@ function Publish-VstsBuildArtifact
 
             if(!$PublishAsFolder.IsPresent)
             {
-                Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$leafFileName]$fileName"
+                Publish-VstsArtifact -Path $fileName -Bucket $Bucket -ArtifactAsFolder:$ArtifactAsFolder.IsPresent
             }
 
             $script:publishedFiles += $fileName
@@ -128,6 +129,26 @@ function Publish-VstsBuildArtifact
     {
         throw "Build did not produce the expected number of binaries. $($files.count) were produced instead of $ExpectedCount."
     }
+}
+
+function Publish-VstsArtifact
+{
+    param(
+        [parameter(HelpMessage="The file to publish", Mandatory)]
+        [string]$Path,
+        [parameter(HelpMessage="The folder to same artifacts to.")]
+        [string]$Bucket = 'release',
+        [parameter(HelpMessage="Make multiple files published appear as a folder in VSTS")]
+        [Switch]$ArtifactAsFolder
+    )
+
+    $artifactName = Split-Path -Path $Path -Leaf
+    if($ArtifactAsFolder.IsPresent)
+    {
+        $artifactName = $Bucket
+    }
+
+    Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$artifactName]$fileName"
 }
 
 function Write-VstsError {
