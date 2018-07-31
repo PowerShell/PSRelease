@@ -590,4 +590,8 @@ class BuildData
 
     # Optional: The name of a variable to set for the path to any extracted binaries.
     [String]$VariableForExtractedBinariesPath
+
+    # Optional: A list of features to enable.
+    [ValidateSet("ArtifactAsFolder")]
+    [String[]]$EnableFeature
 }
