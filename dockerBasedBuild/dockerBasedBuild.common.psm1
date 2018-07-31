@@ -114,6 +114,11 @@ function Invoke-BuildInDocker
         $publishParams['PublishAsFolder'] = $true
     }
 
+    if ($BuildData.EnableFeature['ArtifactAsFolder'])
+    {
+        $publishParams['ArtifactAsFolder'] = $true
+    }
+
     Publish-VstsBuildArtifact -ArtifactPath (Get-Destination) -Bucket $BuildData.BinaryBucket @publishParams
 }
 
