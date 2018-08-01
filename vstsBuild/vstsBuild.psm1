@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
 # VSTS task states: Succeeded|SucceededWithIssues|Failed|Cancelled|Skipped
 $succeededStateName = 'Succeeded'
 $warningStateName = 'SucceededWithIssues'

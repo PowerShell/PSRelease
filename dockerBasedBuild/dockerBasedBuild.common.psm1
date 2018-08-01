@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
 $psreleaseStrings = Import-PowerShellDataFile -path "$PSScriptRoot\dockerBasedBuild.strings.psd1"
 
 # on pre-6.0 PowerShell $IsWindows doesn't exist, but those are always windows
