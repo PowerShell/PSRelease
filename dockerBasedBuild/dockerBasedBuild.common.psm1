@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation. All rights reserved.
+# Licensed under the MIT License.
+
 $psreleaseStrings = Import-PowerShellDataFile -path "$PSScriptRoot\dockerBasedBuild.strings.psd1"
 
 # on pre-6.0 PowerShell $IsWindows doesn't exist, but those are always windows
@@ -112,6 +115,11 @@ function Invoke-BuildInDocker
     if ($BuildData.PublishAsFolder)
     {
         $publishParams['PublishAsFolder'] = $true
+    }
+
+    if ($BuildData.EnableFeature.Contains('ArtifactAsFolder'))
+    {
+        $publishParams['ArtifactAsFolder'] = $true
     }
 
     Publish-VstsBuildArtifact -ArtifactPath (Get-Destination) -Bucket $BuildData.BinaryBucket @publishParams
@@ -590,4 +598,13 @@ class BuildData
 
     # Optional: The name of a variable to set for the path to any extracted binaries.
     [String]$VariableForExtractedBinariesPath
+
+    # Optional: A list of features to enable.
+    [ValidateSet("ArtifactAsFolder")]
+    [String[]]$EnableFeature
+}
+
+function New-BuildData
+{
+    [BuildData]::new()
 }
