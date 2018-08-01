@@ -84,7 +84,7 @@ function Publish-VstsBuildArtifact
 
         $fullName = $artifactDir.FullName
 
-        Publish-VstsArtifact -Path $fullName -Bucket $Bucket -ArtifactAsFolder:$ArtifactAsFolder.IsPresent
+        Publish-VstsArtifactWrapper -Path $fullName -Bucket $Bucket -ArtifactAsFolder:$ArtifactAsFolder.IsPresent
     }
 
     # In VSTS, publish artifacts appropriately
@@ -121,7 +121,7 @@ function Publish-VstsBuildArtifact
 
             if(!$PublishAsFolder.IsPresent)
             {
-                Publish-VstsArtifact -Path $fileName -Bucket $Bucket -ArtifactAsFolder:$ArtifactAsFolder.IsPresent
+                Publish-VstsArtifactWrapper -Path $fileName -Bucket $Bucket -ArtifactAsFolder:$ArtifactAsFolder.IsPresent
             }
 
             $script:publishedFiles += $fileName
@@ -134,7 +134,7 @@ function Publish-VstsBuildArtifact
     }
 }
 
-function Publish-VstsArtifact
+function Publish-VstsArtifactWrapper
 {
     param(
         [parameter(HelpMessage="The file to publish", Mandatory)]
@@ -151,7 +151,21 @@ function Publish-VstsArtifact
         $artifactName = $Bucket
     }
 
-    Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$artifactName]$fileName"
+    Publish-VstsArtifact -Path $Path -Bucket $Bucket -ArtifactName $artifactName
+}
+
+function Publish-VstsArtifact
+{
+    param(
+        [parameter(HelpMessage="The file to publish", Mandatory)]
+        [string]$Path,
+        [parameter(HelpMessage="The folder to same artifacts to.",Mandatory)]
+        [string]$Bucket,
+        [parameter(HelpMessage="The folder to same artifacts to.",Mandatory)]
+        [string]$ArtifactName
+    )
+
+    Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$ArtifactName]$Path"
 }
 
 function Write-VstsError {
@@ -235,4 +249,5 @@ Export-ModuleMember @(
     'Write-VstsMessage'
     'Clear-VstsTaskState'
     'Write-VstsTaskState'
+    'Publish-VstsArtifact'
 )
