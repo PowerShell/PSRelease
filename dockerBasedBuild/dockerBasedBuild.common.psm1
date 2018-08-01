@@ -603,3 +603,8 @@ class BuildData
     [ValidateSet("ArtifactAsFolder")]
     [String[]]$EnableFeature
 }
+
+function New-BuildData
+{
+    [BuildData]::new()
+}
