@@ -117,7 +117,7 @@ function Invoke-BuildInDocker
         $publishParams['PublishAsFolder'] = $true
     }
 
-    if ($BuildData.EnableFeature.Contains('ArtifactAsFolder'))
+    if ($BuildData.EnableFeature -and $BuildData.EnableFeature.Contains('ArtifactAsFolder'))
     {
         $publishParams['ArtifactAsFolder'] = $true
     }
