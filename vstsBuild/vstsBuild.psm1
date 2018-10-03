@@ -79,7 +79,7 @@ function Publish-VstsBuildArtifact
         $artifactDir = Get-Item -Path $ArtifactPath -ErrorAction SilentlyContinue
         if(!$artifactDir -or $artifactDir -isnot [System.IO.DirectoryInfo])
         {
-            Write-Error -Message "-ArtifactPath must be a folder which exists" -ErrorAction Stop 
+            Write-Error -Message "-ArtifactPath must be a folder which exists" -ErrorAction Stop
         }
 
         $fullName = $artifactDir.FullName
@@ -165,7 +165,9 @@ function Publish-VstsArtifact
         [string]$ArtifactName
     )
 
-    Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$ArtifactName]$Path"
+    if ($env:BUILD_REASON -ne 'PullRequest') {
+        Write-Host "##vso[artifact.upload containerfolder=$Bucket;artifactname=$ArtifactName]$Path"
+    }
 }
 
 function Write-VstsError {
