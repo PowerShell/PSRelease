@@ -16,7 +16,8 @@ $installPsUrl = 'https://raw.githubusercontent.com/PowerShell/PowerShell/master/
 
 Invoke-WebRequest -Uri $installPsUrl -outFile ./install-powershell.ps1
 
-./install-powershell.ps1 -AddToPath
+$pwshDestination = Join-Path -Path $env:SystemDrive -ChildPath "pwsh"
+./install-powershell.ps1 -AddToPath -Destination $pwshDestination
 
 Invoke-WebRequest -Uri $agentZipUrl -outFile ./agent.zip
 
