@@ -20,11 +20,13 @@ Invoke-WebRequest -Uri $installPsUrl -outFile ./install-powershell.ps1
 
 Invoke-WebRequest -Uri $agentZipUrl -outFile ./agent.zip
 
-Expand-Archive -Path ./agent.zip -DestinationPath C:\AzDevOpsAgent -force
+$agentPath = Join-Path -Path $env:SystemDrive -ChildPath 'AzDevOpsAgent'
+Expand-Archive -Path ./agent.zip -DestinationPath $agentPath -force
 
-$workDir = 'C:\1'
+$workDir = Join-Path -Path $env:SystemDrive -ChildPath '1'
 $null = New-Item -ItemType Directory -Path $workDir
 
 Write-Host "Url: $Url"
 Write-Host "Pool: $pool"
-C:\AzDevOpsAgent\config.cmd --unattended --url $Url --auth pat --token $Pat --pool $Pool --agent $env:Computername --work $workDir --runAsService
+$configCmd = Join-Path -Path $agentPath -ChildPath 'config.cmd'
+& $configCmd --unattended --url $Url --auth pat --token $Pat --pool $Pool --agent $env:Computername --work $workDir --runAsService
