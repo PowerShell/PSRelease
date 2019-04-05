@@ -130,7 +130,7 @@ function Publish-VstsBuildArtifact
 
     if($ExpectedCount -ne -1 -and $files.Count -ne $ExpectedCount)
     {
-        throw "Build did not produce the expected number of binaries. $($files.count) were produced instead of $ExpectedCount."
+        throw "Build did not produce the expected number of binaries. $($files.count) were produced instead of $ExpectedCount.  Update the 'ArtifactsExpected' property in 'build.json' if the number of artifacts has changed."
     }
 }
 
