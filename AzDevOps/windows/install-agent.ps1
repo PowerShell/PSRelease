@@ -22,7 +22,7 @@ $pwshDestination = Join-Path -Path $env:SystemDrive -ChildPath "pwsh"
 Invoke-WebRequest -Uri $agentZipUrl -outFile ./agent.zip
 
 $agentPath = Join-Path -Path $env:SystemDrive -ChildPath 'AzDevOpsAgent'
-Expand-Archive -Path ./agent.zip -DestinationPath $agentPath -force
+[System.IO.Compression.ZipFile]::ExtractToDirectory("./agent.zip", $agentPath)
 
 $workDir = Join-Path -Path $env:SystemDrive -ChildPath '1'
 $null = New-Item -ItemType Directory -Path $workDir
