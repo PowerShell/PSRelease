@@ -22,7 +22,9 @@ if (-not $pwshExe) {
     ./install-powershell.ps1 -AddToPath -Destination $pwshDestination
 
     # A restart or logoff/logon is needed on older Windows OSes for updating the PATH environment variable
-    Restart-Computer -Force
+    # Cannot use Restart-Computer as it will set the exit code to 1 with -Force
+    # /t greater than 0 implies force.
+    shutdown /r /t 30
 }
 
 Invoke-WebRequest -Uri $agentZipUrl -outFile ./agent.zip
