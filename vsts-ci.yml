@@ -1,5 +1,25 @@
-
 name: PR-$(System.PullRequest.PullRequestNumber)-$(Date:yyyyMMdd)$(Rev:.rr)
+trigger:
+  # Batch merge builds together while a merge build is running
+  batch: true
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - '*'
+    exclude:
+    - /AzDevOps/windows/install-agent.ps1
+pr:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - '*'
+    exclude:
+    - /AzDevOps/windows/install-agent.ps1
+ 
 resources:
 - repo: self
   clean: true
