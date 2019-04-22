@@ -23,6 +23,12 @@ if (-not $pwshExe) {
     Invoke-WebRequest -Uri $installPsUrl -outFile ./install-powershell.ps1
     $pwshDestination = Join-Path -Path $env:SystemDrive -ChildPath "pwsh"
     ./install-powershell.ps1 -AddToPath -Destination $pwshDestination
+    
+    # set modify permission for Network Service, as AzDevOps agent runs in Network Service
+    $acl = Get-Acl $pwshDestination
+    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("network service", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
+    $acl.SetAccessRule($accessRule)
+    Set-Acl -Path $pwshDestination -AclObject $acl
 }
 else {
     Write-Verbose -Verbose "Skipping installing pwsh"
