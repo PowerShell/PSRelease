@@ -62,5 +62,11 @@ Write-Verbose -Verbose "Completed installing AzDevOps agent"
 ## Disable UAC and restart is needed
 New-ItemProperty -Path HKLM:Software\Microsoft\Windows\CurrentVersion\policies\system -Name EnableLUA -PropertyType DWord -Value 0 -Force
 
-Write-Verbose -Verbose "Rebooting"
-shutdown /r /t 30
+if (test-path $HOME\ps-rebooted.txt) {
+    Write-Verbose -Verbose "We have already rebooted once."
+ }
+ else {
+    Write-Verbose -Verbose "Rebooting"
+    New-Item -ItemType File $HOME\ps-rebooted.txt > $null
+    shutdown /r /t 30
+ }
