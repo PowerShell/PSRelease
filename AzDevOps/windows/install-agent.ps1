@@ -38,6 +38,14 @@ Write-Verbose -Verbose "Downlading agent.zip from $agentZipUrl"
 Invoke-WebRequest -Uri $agentZipUrl -outFile ./agent.zip
 Write-Verbose -Verbose "Completed downlading agent.zip"
 
+# add user for vsts agent to runas
+$randomObj = [System.Random]::new()
+$password = ""
+1..(Get-Random -Minimum 15 -Maximum 126) | ForEach-Object { $password = $password + [char]$randomObj.next(45,126) }
+
+$userName = 'VssAdministrator'
+net user VssAdministrator $password /ADD
+
 $agentPath = Join-Path -Path $env:SystemDrive -ChildPath 'AzDevOpsAgent'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory("./agent.zip", $agentPath)
@@ -48,13 +56,11 @@ $null = New-Item -ItemType Directory -Path $workDir
 Write-Host "Url: $Url"
 Write-Host "Pool: $pool"
 $configCmd = Join-Path -Path $agentPath -ChildPath 'config.cmd'
-& $configCmd --unattended --url $Url --auth pat --token $Pat --pool $Pool --agent $env:Computername --work $workDir --runAsService
+& $configCmd --unattended --url $Url --auth pat --token $Pat --pool $Pool --agent $env:Computername --work $workDir --runAsAutoLogon --windowsLogonAccount $userName --windowsLogonPassword $password --noRestart
 Write-Verbose -Verbose "Completed installing AzDevOps agent"
 
-if (-not $pwshExe) {
-    # A restart or logoff/logon is needed on older Windows OSes for updating the PATH environment variable
-    # Cannot use Restart-Computer as it will set the exit code to 1 with -Force
-    # /t greater than 0 implies force.
-    Write-Verbose -Verbose "Rebooting"
-    shutdown /r /t 30
-}
+## Disable UAC and restart is needed
+New-ItemProperty -Path HKLM:Software\Microsoft\Windows\CurrentVersion\policies\system -Name EnableLUA -PropertyType DWord -Value 0 -Force
+
+Write-Verbose -Verbose "Rebooting"
+shutdown /r /t 30
