@@ -23,7 +23,7 @@ if (-not $pwshExe) {
     Invoke-WebRequest -Uri $installPsUrl -outFile ./install-powershell.ps1
     $pwshDestination = Join-Path -Path $env:SystemDrive -ChildPath "pwsh"
     ./install-powershell.ps1 -AddToPath -Destination $pwshDestination
-    
+
     # set modify permission for Network Service, as AzDevOps agent runs in Network Service
     $acl = Get-Acl $pwshDestination
     $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("network service", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
@@ -39,7 +39,7 @@ Invoke-WebRequest -Uri $agentZipUrl -outFile ./agent.zip
 Write-Verbose -Verbose "Completed downlading agent.zip"
 
 # add user for vsts agent to runas
-$randomObj = [System.Random]::new()
+$randomObj = New-Object System.Random
 $password = ""
 1..(Get-Random -Minimum 15 -Maximum 126) | ForEach-Object { $password = $password + [char]$randomObj.next(45,126) }
 
