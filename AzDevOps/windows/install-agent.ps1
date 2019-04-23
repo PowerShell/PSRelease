@@ -41,17 +41,34 @@ Write-Verbose -Verbose "Completed downlading agent.zip"
 # add user for vsts agent to runas
 $randomObj = New-Object System.Random
 $password = ""
-1..(Get-Random -Minimum 15 -Maximum 126) | ForEach-Object { $password = $password + [char]$randomObj.next(45,126) }
+1..(Get-Random -Minimum 8 -Maximum 14) | ForEach-Object { $password = $password + [char]$randomObj.next(45,126) }
 
 $userName = 'VssAdministrator'
-net user VssAdministrator $password /ADD
+
+$userExists = $null -ne (net user | Select-String -Pattern $userName -SimpleMatch)
+
+if ($userExists)
+{
+    Write-Verbose -Verbose "Deleting user"
+    net user $userName /delete
+}
+
+net user $userName $password /ADD
+Write-Verbose -Verbose "User created."
 
 $agentPath = Join-Path -Path $env:SystemDrive -ChildPath 'AzDevOpsAgent'
+
+if (Test-Path $agentPath)
+{
+    Write-Verbose -Verbose "Removing agent."
+    Remove-Item -Force $agentPath -Recurse
+}
+
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory("./agent.zip", $agentPath)
 
 $workDir = Join-Path -Path $env:SystemDrive -ChildPath '1'
-$null = New-Item -ItemType Directory -Path $workDir
+$null = New-Item -ItemType Directory -Path $workDir -Force
 
 Write-Host "Url: $Url"
 Write-Host "Pool: $pool"
