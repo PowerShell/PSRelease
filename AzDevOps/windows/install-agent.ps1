@@ -70,20 +70,11 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $workDir = Join-Path -Path $env:SystemDrive -ChildPath '1'
 $null = New-Item -ItemType Directory -Path $workDir -Force
 
-Write-Host "Url: $Url"
-Write-Host "Pool: $pool"
-$configCmd = Join-Path -Path $agentPath -ChildPath 'config.cmd'
-& $configCmd --unattended --url $Url --auth pat --token $Pat --pool $Pool --agent $env:Computername --work $workDir --runAsAutoLogon --windowsLogonAccount $userName --windowsLogonPassword $password --noRestart
-Write-Verbose -Verbose "Completed installing AzDevOps agent"
-
 ## Disable UAC and restart is needed
 New-ItemProperty -Path HKLM:Software\Microsoft\Windows\CurrentVersion\policies\system -Name EnableLUA -PropertyType DWord -Value 0 -Force
 
-if (test-path $HOME\ps-rebooted.txt) {
-    Write-Verbose -Verbose "We have already rebooted once."
- }
- else {
-    Write-Verbose -Verbose "Rebooting"
-    New-Item -ItemType File $HOME\ps-rebooted.txt > $null
-    shutdown /r /t 30
- }
+Write-Host "Url: $Url"
+Write-Host "Pool: $pool"
+$configCmd = Join-Path -Path $agentPath -ChildPath 'config.cmd'
+& $configCmd --unattended --url $Url --auth pat --token $Pat --pool $Pool --agent $env:Computername --work $workDir --runAsAutoLogon --windowsLogonAccount $userName --windowsLogonPassword $password
+Write-Verbose -Verbose "Completed installing AzDevOps agent"
