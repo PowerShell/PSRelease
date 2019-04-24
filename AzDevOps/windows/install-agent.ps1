@@ -46,6 +46,9 @@ $password = ""
 $userName = 'VssAdministrator'
 net user VssAdministrator $password /ADD
 
+net localgroup administrators $userName /add
+Write-Verbose -Verbose "User added to administrators group."
+
 $agentPath = Join-Path -Path $env:SystemDrive -ChildPath 'AzDevOpsAgent'
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory("./agent.zip", $agentPath)
