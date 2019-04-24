@@ -56,6 +56,9 @@ if ($userExists)
 net user $userName $password /ADD
 Write-Verbose -Verbose "User created."
 
+net localgroup administrators $userName /add
+Write-Verbose -Verbose "User added to administrators group."
+
 $agentPath = Join-Path -Path $env:SystemDrive -ChildPath 'AzDevOpsAgent'
 
 if (Test-Path $agentPath)
