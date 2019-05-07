@@ -79,5 +79,5 @@ New-ItemProperty -Path HKLM:Software\Microsoft\Windows\CurrentVersion\policies\s
 Write-Host "Url: $Url"
 Write-Host "Pool: $pool"
 $configCmd = Join-Path -Path $agentPath -ChildPath 'config.cmd'
-& $configCmd --unattended --url $Url --auth pat --token $Pat --pool $Pool --agent $env:Computername --work $workDir --runAsAutoLogon --windowsLogonAccount $userName --windowsLogonPassword $password
+& $configCmd --unattended --url $Url --auth pat --token $Pat --pool $Pool --agent $env:Computername --work $workDir --runAsService --windowsLogonAccount $userName --windowsLogonPassword $password
 Write-Verbose -Verbose "Completed installing AzDevOps agent"
