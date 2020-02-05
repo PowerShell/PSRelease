@@ -53,4 +53,112 @@ Describe "DockerBasedBuild.Common" {
             } -ModuleName $moduleName
         }
     }
+
+    Context "Get-EngineType" {
+        Context "Use AzDevOps docker" {
+
+            It "Should return expected result on AzDevOps" {
+                if (!$env:TF_BUILD) {
+                    Set-ItResult -Skipped -Because "Only test an Azure Dev Ops"
+                }
+                $expectedResult = 'Moby'
+                if ($IsWindows) {
+                    $expectedResult = 'Docker'
+                }
+
+                Get-EngineType -NoCache -Verbose | Should -Be $expectedResult
+            }
+        }
+
+        Context "Use mocked moby engine" {
+            BeforeAll{
+                Mock -CommandName 'docker' -MockWith {""} -Verifiable -ModuleName $moduleName
+            }
+
+            It "Should return moby" {
+                $result = Get-EngineType -NoCache
+                Assert-VerifiableMock
+                $result | Should -Be 'Moby'
+            }
+        }
+        Context "Use mocked docker engine" {
+            BeforeAll{
+                Mock -CommandName 'docker' -MockWith {"Docker fake server platform"} -Verifiable -ModuleName $moduleName
+            }
+
+            It "Should return docker" {
+                $result = Get-EngineType -NoCache
+                Assert-VerifiableMock
+                $result | Should -Be 'Docker'
+            }
+        }
+        Context "Use Cache" {
+            It "Should return moby" {
+                $result = Get-EngineType
+                $result | Should -Be 'Docker'
+            }
+        }
+    }
+    Context "Test-SupportPrune" {
+        Context "Docker" {
+
+            Context "17.05" {
+                BeforeAll {
+                    Mock -CommandName 'Get-EngineType' -MockWith {"Docker"} -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-DockerVersion' -MockWith {[version]'17.05'} -Verifiable -ModuleName $moduleName
+                }
+
+                It "Should return false" {
+                    $result = Test-SupportPrune
+                    Assert-MockCalled -CommandName 'Get-EngineType' -ModuleName $moduleName
+                    Assert-MockCalled -CommandName 'Get-DockerVersion' -ModuleName $moduleName
+                    $result | Should -BeFalse
+                }
+            }
+
+            Context "17.06" {
+                BeforeAll {
+                    Mock -CommandName 'Get-EngineType' -MockWith {"Docker"} -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-DockerVersion' -MockWith {[version]'17.06'} -Verifiable -ModuleName $moduleName
+                }
+
+                It "Should return true" {
+                    $result = Test-SupportPrune
+                    Assert-MockCalled -CommandName 'Get-EngineType' -ModuleName $moduleName
+                    Assert-MockCalled -CommandName 'Get-DockerVersion' -ModuleName $moduleName
+                    $result | Should -BeTrue
+                }
+            }
+        }
+        Context "Moby" {
+
+            Context "3.0.9" {
+                BeforeAll {
+                    Mock -CommandName 'Get-EngineType' -MockWith {"Moby"} -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-DockerVersion' -MockWith {[version]'3.0.9'} -Verifiable -ModuleName $moduleName
+                }
+
+                It "Should return false" {
+                    $result = Test-SupportPrune
+                    Assert-MockCalled -CommandName 'Get-EngineType' -ModuleName $moduleName
+                    Assert-MockCalled -CommandName 'Get-DockerVersion' -ModuleName $moduleName
+                    $result | Should -BeFalse
+                }
+            }
+
+            Context "3.0.10" {
+                BeforeAll {
+                    Mock -CommandName 'Get-EngineType' -MockWith {"Moby"} -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-DockerVersion' -MockWith {[version]'3.0.10'} -Verifiable -ModuleName $moduleName
+                }
+
+                It "Should return true" {
+                    $result = Test-SupportPrune
+                    Assert-MockCalled -CommandName 'Get-EngineType' -ModuleName $moduleName
+                    Assert-MockCalled -CommandName 'Get-DockerVersion' -ModuleName $moduleName
+                    $result | Should -BeTrue
+                }
+            }
+        }    }
+
 }

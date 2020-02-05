@@ -294,7 +294,7 @@ function New-DockerImage
                 Copy-item -path $RepoLocation -Destination $RepoPath -Recurse
 
                 Invoke-CleanRepo -RepoLocation $repoPath
-                
+
                 # Add additional files to the repo after we have cleaned it
                 foreach($file in $AdditionalFiles)
                 {
@@ -422,15 +422,43 @@ function Invoke-DockerBuild
 $script:dockerVersion
 function Get-DockerVersion
 {
+    Write-Verbose "in gdv" -Verbose
     if(!$script:dockerVersion)
     {
         $versionString = Invoke-Docker -Command 'version' -Params '--format', '{{.Server.Version}}' -SupressHostOutput -PassThru
         $versionParts = $versionString.Split('-')
+        $versionParts = $versionParts[0].Split('+')
         $script:dockerVersion = [Version] $versionParts[0]
     }
 
     return $script:dockerVersion
 }
+
+$script:dockerServerPlatformName
+function Get-EngineType
+{
+    param(
+        [switch] $NoCache
+    )
+
+    if(!$script:dockerServerPlatformName -or $NoCache.IsPresent)
+    {
+        $script:dockerServerPlatformName = Invoke-Docker -Command 'version' -Params '--format', '{{.Server.Platform.Name}}' -SupressHostOutput -PassThru
+    }
+
+    Write-Verbose "PlatformName: $script:dockerServerPlatformName"
+
+    switch -Regex ($script:dockerServerPlatformName) {
+        "^Docker.*$" {
+            "Docker"
+        }
+        # moby doesn't declare a name
+        default {
+            "Moby"
+        }
+    }
+}
+
 
 # Call Docker with appropriate result checks
 function Invoke-Docker
@@ -495,6 +523,30 @@ function Invoke-Docker
     return $true
 }
 
+function Test-SupportPrune {
+    $engine = Get-EngineType
+    Write-Verbose "in tsp - $engine"
+    if ($engine -eq 'Docker') {
+        $version = Get-DockerVersion
+        Write-Verbose "in tsp-docker-$version"
+        if ($version -ge [Version]'17.06') {
+            Write-Verbose "in tsp-docker-supported"
+            return $true
+        }
+    }
+    elseif ($engine -eq 'Moby') {
+        $version = Get-DockerVersion
+        Write-Verbose "in tsp-moby-$version"
+        if ($version -ge [Version]'3.0.10') {
+            Write-Verbose "in tsp-moby-supported"
+            return $true
+        }
+    }
+
+    Write-Verbose "in tsp-not-supported"
+    return $false
+}
+
 function Remove-Container
 {
     param(
@@ -507,23 +559,21 @@ function Remove-Container
         SupressHostOutput = $true
     }
 
-    if(Get-DockerVersion -ge [Version]'17.06')
-    {
+    if (Test-SupportPrune) {
         Invoke-Docker -Command 'container', 'prune' -Params '--force' -SupressHostOutput
     }
-    else
-    {
+    else {
         # stop all running containers
         Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}' @commonDockerParams -PassThru |
-            Where-Object {$_ -ne $null} |
-            ConvertFrom-Json |
-            ForEach-Object { $null = Invoke-Docker -Command stop -Params $_.Names  @commonDockerParams}
+        Where-Object { $_ -ne $null } |
+        ConvertFrom-Json |
+        ForEach-Object { $null = Invoke-Docker -Command stop -Params $_.Names  @commonDockerParams }
 
         # remove all containers
         Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}', '--all' @commonDockerParams -PassThru |
-            Where-Object {$_ -ne $null} |
-            ConvertFrom-Json |
-            ForEach-Object { $null = Invoke-Docker -Command rm -Params $_.Names  @commonDockerParams}
+        Where-Object { $_ -ne $null } |
+        ConvertFrom-Json |
+        ForEach-Object { $null = Invoke-Docker -Command rm -Params $_.Names  @commonDockerParams }
     }
 }
 
