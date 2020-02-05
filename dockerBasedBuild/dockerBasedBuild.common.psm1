@@ -4,17 +4,15 @@
 $psreleaseStrings = Import-PowerShellDataFile -path "$PSScriptRoot\dockerBasedBuild.strings.psd1"
 
 # on pre-6.0 PowerShell $IsWindows doesn't exist, but those are always windows
-if($IsWindows -eq $null)
-{
+if ($IsWindows -eq $null) {
     $IsWindows = $true
 }
 
 
 # Get the full images name based on the parameter
-function Get-BuildImageName
-{
+function Get-BuildImageName {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]
         $image
     )
@@ -25,36 +23,30 @@ function Get-BuildImageName
 # Get the destination for the build
 $script:destinationPath = $null
 
-function Get-Destination
-{
-    if(!$script:destinationPath)
-    {
+function Get-Destination {
+    if (!$script:destinationPath) {
         $script:destinationPath = Get-TempFolder
     }
 
     return $script:destinationPath
 }
 
-function Get-TempFolder
-{
+function Get-TempFolder {
     $tempPath = [System.IO.Path]::GetTempPath()
     # Use the agent temp on VSTS which is cleanup between builds (the user temp is not)
-    if($env:AGENT_TEMPDIRECTORY)
-    {
+    if ($env:AGENT_TEMPDIRECTORY) {
         $tempPath = $env:AGENT_TEMPDIRECTORY
     }
 
     $tempFolder = Join-Path -Path $tempPath -ChildPath ([System.IO.Path]::GetRandomFileName())
-    if(!(test-path $tempFolder))
-    {
+    if (!(test-path $tempFolder)) {
         $null = New-Item -Path $tempFolder -ItemType Directory
     }
 
     return $tempFolder
 }
 
-function Invoke-BuildInDocker
-{
+function Invoke-BuildInDocker {
     param(
         [Parameter(Mandatory)]
         [BuildData]$BuildData,
@@ -71,8 +63,7 @@ function Invoke-BuildInDocker
 
     $dockerFilePath = Join-Path -Path $RepoLocation $BuildData.DockerFile
     $additionalContextFiles = @()
-    foreach($additionalContextFile in $BuildData.AdditionalContextFiles)
-    {
+    foreach ($additionalContextFile in $BuildData.AdditionalContextFiles) {
         $additionalContextFiles += Join-Path -Path $RepoLocation -ChildPath $additionalContextFile
     }
     $imageName = $BuildData.DockerImageName
@@ -88,37 +79,31 @@ function Invoke-BuildInDocker
         -ContainerRepoLocation $BuildData.RepoDestinationPath `
         -AdditionalFiles $AdditionalFiles
 
-    $extraBuildParams = @{}
-    if ($BuildData.BuildDockerOptions)
-    {
+    $extraBuildParams = @{ }
+    if ($BuildData.BuildDockerOptions) {
         $extraBuildParams['DockerOptions'] = $BuildData.BuildDockerOptions
     }
 
     Invoke-DockerBuild -ImageName $imageName -RepoLocation $RepoLocation -ContainerRepoLocation $BuildData.RepoDestinationPath -BuildCommand $BuildData.BuildCommand -Parameters $Parameters @extraBuildParams
 
-    $publishParams = @{}
-    if ($BuildData.VariableForExtractedBinariesPath)
-    {
-        if($BuildData.ArtifactsExpected -ne 1)
-        {
+    $publishParams = @{ }
+    if ($BuildData.VariableForExtractedBinariesPath) {
+        if ($BuildData.ArtifactsExpected -ne 1) {
             Write-Warning 'To use VariableForExtractedBinariesPath set ArtifactsExpected to 1'
         }
 
         $publishParams['Variable'] = $BuildData.VariableForExtractedBinariesPath
     }
 
-    if ($BuildData.ArtifactsExpected -gt 0)
-    {
+    if ($BuildData.ArtifactsExpected -gt 0) {
         $publishParams['ExpectedCount'] = $BuildData.ArtifactsExpected
     }
 
-    if ($BuildData.PublishAsFolder)
-    {
+    if ($BuildData.PublishAsFolder) {
         $publishParams['PublishAsFolder'] = $true
     }
 
-    if ($BuildData.EnableFeature -and $BuildData.EnableFeature.Contains('ArtifactAsFolder'))
-    {
+    if ($BuildData.EnableFeature -and $BuildData.EnableFeature.Contains('ArtifactAsFolder')) {
         $publishParams['ArtifactAsFolder'] = $true
     }
 
@@ -127,8 +112,7 @@ function Invoke-BuildInDocker
 
 # Clone a github repo and recursively init submodules
 # Optionally, clean clone location if already exists
-function Invoke-CloneGitHubRepo
-{
+function Invoke-CloneGitHubRepo {
     param(
         [string]$Fork,
         [string]$Repo,
@@ -138,28 +122,25 @@ function Invoke-CloneGitHubRepo
     )
     $gitBinFullPath = Get-GitPath
 
-    if((Test-Path $Location) -and $CleanLocation.IsPresent)
-    {
+    if ((Test-Path $Location) -and $CleanLocation.IsPresent) {
         Remove-Item -Path $Location -Recurse -Force
     }
 
-    Start-NativeExecution -sb {& $gitBinFullPath clone -b $branch --quiet https://github.com/$fork/$Repo.git $location}
+    Start-NativeExecution -sb { & $gitBinFullPath clone -b $branch --quiet https://github.com/$fork/$Repo.git $location }
 
     Push-Location
-    try{
+    try {
         Set-Location $location
-        Start-NativeExecution -sb {& $gitBinFullPath  submodule update --init --recursive --quiet}
+        Start-NativeExecution -sb { & $gitBinFullPath  submodule update --init --recursive --quiet }
     }
-    finally
-    {
+    finally {
         Pop-Location
     }
 
 }
 
 # Use git to clean an existing repo
-function Invoke-CleanRepo
-{
+function Invoke-CleanRepo {
     param(
         [string] $RepoLocation
     )
@@ -167,28 +148,23 @@ function Invoke-CleanRepo
     $gitBinFullPath = Get-GitPath
     Push-Location
     Set-Location $RepoLocation
-    try
-    {
-        Start-NativeExecution -sb {& $gitBinFullPath clean -fdX $RepoLocation}
+    try {
+        Start-NativeExecution -sb { & $gitBinFullPath clean -fdX $RepoLocation }
     }
-    finally
-    {
+    finally {
         Pop-Location
     }
 }
 
-$script:gitPath=$null
-function Get-GitPath
-{
-    if($script:gitPath)
-    {
+$script:gitPath = $null
+function Get-GitPath {
+    if ($script:gitPath) {
         return $script:gitPath
     }
 
     $git = Get-Command -Name git -CommandType Application | Select-Object -First 1
 
-    if($git)
-    {
+    if ($git) {
         $script:gitPath = $git.Source
         return $script:gitPath
     }
@@ -196,27 +172,24 @@ function Get-GitPath
     $gitBinFullPath = (Join-Path "$env:ProgramFiles" 'git\bin\git.exe')
     log "Ensure Git for Windows is available @ $gitBinFullPath"
 
-    if (-not (Test-Path $gitBinFullPath))
-    {
+    if (-not (Test-Path $gitBinFullPath)) {
         throw "Git for Windows is required to proceed. Install from 'https://git-scm.com/download/win'"
     }
-    else
-    {
+    else {
         $script:gitPath = $gitBinFullPath
         return $script:gitPath
     }
 }
 
 # Builds a Docker image for the build
-function New-DockerImage
-{
-    [cmdletbinding(DefaultParameterSetName='default')]
+function New-DockerImage {
+    [cmdletbinding(DefaultParameterSetName = 'default')]
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]
         $DockerFilePath,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]
         $ImageName,
 
@@ -226,19 +199,19 @@ function New-DockerImage
         [string]
         $ContextPath,
 
-        [Parameter(ParameterSetName='addrepo',Mandatory)]
+        [Parameter(ParameterSetName = 'addrepo', Mandatory)]
         [switch]
         $AddRepo,
 
-        [Parameter(ParameterSetName='addrepo',Mandatory)]
+        [Parameter(ParameterSetName = 'addrepo', Mandatory)]
         [string]
         $RepoLocation,
 
-        [Parameter(ParameterSetName='addrepo',Mandatory)]
+        [Parameter(ParameterSetName = 'addrepo', Mandatory)]
         [string]
         $ContainerRepoLocation,
 
-        [Parameter(ParameterSetName='addrepo')]
+        [Parameter(ParameterSetName = 'addrepo')]
         [string[]]
         $AdditionalFiles
     )
@@ -247,24 +220,20 @@ function New-DockerImage
 
     try {
         $runtimeContextPath = $null
-        if($ContextPath)
-        {
+        if ($ContextPath) {
             $runtimeContextPath = $ContextPath
             Copy-Item -Path $dockerFilePath -Destination $contextPath
-            foreach($additionalContextFile in $AdditionalContextFiles)
-            {
+            foreach ($additionalContextFile in $AdditionalContextFiles) {
                 Copy-Item -Path $additionalContextFile -Destination $contextPath
             }
         }
-        else
-        {
+        else {
             $runtimeContextPath = Split-Path -Path $DockerFilePath
         }
 
         $dockerBuildImageName = $ImageName
-        if($AddRepo)
-        {
-            $dockerBuildImageName = $ImageName+'-without-repo'
+        if ($AddRepo) {
+            $dockerBuildImageName = $ImageName + '-without-repo'
         }
 
         # always log docker host information to allow troubleshooting issues with docker
@@ -272,21 +241,18 @@ function New-DockerImage
         # Build the container, pulling to ensure we have the newest base image
         $null = Invoke-Docker -command build -params '--pull', '--tag', $dockerBuildImageName, $runtimeContextPath
 
-        if($contextPath)
-        {
+        if ($contextPath) {
             remove-item $contextPath -Recurse -Force -ErrorAction SilentlyContinue
         }
 
-        if($AddRepo.IsPresent)
-        {
+        if ($AddRepo.IsPresent) {
             $repoFolderName = 'repolink'
 
             $dockerBuildFolder = Get-TempFolder
 
             $repoPath = Join-Path -Path $dockerBuildFolder -ChildPath $repoFolderName
 
-            try
-            {
+            try {
                 $addRepoDockerFilePath = Join-Path -Path $dockerBuildFolder -ChildPath 'Dockerfile'
 
                 # TODO: redo using symbolic links, but hit many isssue using them.
@@ -296,8 +262,7 @@ function New-DockerImage
                 Invoke-CleanRepo -RepoLocation $repoPath
 
                 # Add additional files to the repo after we have cleaned it
-                foreach($file in $AdditionalFiles)
-                {
+                foreach ($file in $AdditionalFiles) {
                     log "coping $file to $repoPath"
                     Copy-Item -Path $file -Destination $repoPath -Recurse
                 }
@@ -306,35 +271,31 @@ function New-DockerImage
 
                 $null = Invoke-Docker -command build -params '--tag', $ImageName, $dockerBuildFolder
             }
-            finally
-            {
-                if(Test-Path $dockerBuildFolder)
-                {
+            finally {
+                if (Test-Path $dockerBuildFolder) {
                     Remove-Item -Path $dockerBuildFolder -Recurse -Force -ErrorAction SilentlyContinue
                 }
             }
         }
     }
-    catch
-    {
+    catch {
         Write-VstsError $_
     }
 }
 
 # Run the build in a Docker container.
 # When the build finishes, copy artifacts from the container to the destination.
-function Invoke-DockerBuild
-{
+function Invoke-DockerBuild {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]
         $ImageName,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $RepoLocation,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [ValidateNotNullOrEmpty()]
         [string] $ContainerRepoLocation,
 
@@ -348,32 +309,28 @@ function Invoke-DockerBuild
         [hashtable] $Parameters
     )
 
-    if($Parameters)
-    {
+    if ($Parameters) {
         $runtimeParameters = $Parameters.Clone()
     }
     else {
-        $runtimeParameters = @{}
+        $runtimeParameters = @{ }
     }
 
-    $runtimeParameters['RepoDestinationPath']=$BuildData.RepoDestinationPath
+    $runtimeParameters['RepoDestinationPath'] = $BuildData.RepoDestinationPath
 
     $ErrorActionPreference = 'Stop'
 
     try {
 
-        if($IsWindows)
-        {
+        if ($IsWindows) {
             $outputFolder = 'C:\out'
         }
-        else
-        {
+        else {
             $outputFolder = '/mnt'
         }
-        $runtimeParameters['DockerVolume']=$outputFolder
+        $runtimeParameters['DockerVolume'] = $outputFolder
 
-        if(!(Test-Path $destination))
-        {
+        if (!(Test-Path $destination)) {
             $null = New-Item -Path $destination -ItemType Directory -Force
         }
 
@@ -381,23 +338,20 @@ function Invoke-DockerBuild
 
         $params = @('-i', '--name', $dockerContainerName)
 
-        if($DockerOptions)
-        {
+        if ($DockerOptions) {
             $params += $DockerOptions
         }
 
         $params += $imageName
         $runtimeBuildCommand = [System.Text.StringBuilder]::new($BuildCommand)
-        foreach($key in $runtimeParameters.Keys)
-        {
+        foreach ($key in $runtimeParameters.Keys) {
             $token = "_${key}_"
             $value = $runtimeParameters.$key
-            $null = $runtimeBuildCommand.Replace($token,$value)
+            $null = $runtimeBuildCommand.Replace($token, $value)
         }
 
         $runtimeBuildCommandString = $runtimeBuildCommand.ToString()
-        foreach($param in $runtimeBuildCommandString -split ' ')
-        {
+        foreach ($param in $runtimeBuildCommandString -split ' ') {
             $params += $param
         }
 
@@ -413,8 +367,7 @@ function Invoke-DockerBuild
         # We are done with the containers, remove them
         Remove-Container
     }
-    catch
-    {
+    catch {
         Write-VstsError $_
     }
 }
@@ -432,14 +385,12 @@ function Get-DockerVersion {
 }
 
 $script:dockerServerPlatformName
-function Get-EngineType
-{
+function Get-EngineType {
     param(
         [switch] $NoCache
     )
 
-    if(!$script:dockerServerPlatformName -or $NoCache.IsPresent)
-    {
+    if (!$script:dockerServerPlatformName -or $NoCache.IsPresent) {
         $script:dockerServerPlatformName = Invoke-Docker -Command 'version' -Params '--format', '{{.Server.Platform.Name}}' -SupressHostOutput -PassThru
     }
 
@@ -458,15 +409,14 @@ function Get-EngineType
 
 
 # Call Docker with appropriate result checks
-function Invoke-Docker
-{
+function Invoke-Docker {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string[]]
         $Command,
-        [ValidateSet("error","warning",'ignore')]
+        [ValidateSet("error", "warning", 'ignore')]
         $FailureAction = 'error',
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string[]]
         $Params,
         [switch]
@@ -480,40 +430,32 @@ function Invoke-Docker
     # Log how we are running docker for troubleshooting issues
     log "Running docker $command $params"
     $dockerErrors = $null
-    if($SupressHostOutput.IsPresent)
-    {
+    if ($SupressHostOutput.IsPresent) {
         $result = &'docker' $command $params 2>&1
     }
-    else
-    {
+    else {
         &'docker' $command $params 2>&1 | Tee-Object -Variable result -ErrorAction SilentlyContinue -ErrorVariable dockerErrors | Out-String -Stream -ErrorAction SilentlyContinue | Write-Host -ErrorAction SilentlyContinue
     }
 
-    if($dockerErrors -and $FailureAction -ne 'ignore')
-    {
-        foreach($error in $dockerErrors)
-        {
+    if ($dockerErrors -and $FailureAction -ne 'ignore') {
+        foreach ($error in $dockerErrors) {
             Write-VstsError -Error $error -Type $FailureAction
         }
     }
 
     $dockerExitCode = $LASTEXITCODE
-    if($PassThru.IsPresent)
-    {
+    if ($PassThru.IsPresent) {
         return $result
     }
-    elseif($dockerExitCode -ne 0 -and $FailureAction -eq 'error')
-    {
+    elseif ($dockerExitCode -ne 0 -and $FailureAction -eq 'error') {
         Write-VstsMessage -type error -message "docker $command failed with: $result"
         return $false
     }
-    elseif($dockerExitCode -ne 0 -and $FailureAction -eq 'warning')
-    {
+    elseif ($dockerExitCode -ne 0 -and $FailureAction -eq 'warning') {
         Write-VstsMessage -type warning -message "docker $command failed with: $result"
         return $false
     }
-    elseif($dockerExitCode -ne 0)
-    {
+    elseif ($dockerExitCode -ne 0) {
         return $false
     }
 
@@ -544,15 +486,14 @@ function Test-SupportPrune {
     return $false
 }
 
-function Remove-Container
-{
+function Remove-Container {
     param(
-        [ValidateSet('warning','ignore')]
+        [ValidateSet('warning', 'ignore')]
         $FailureAction = 'warning'
     )
 
     $commonDockerParams = @{
-        FailureAction = $FailureAction
+        FailureAction     = $FailureAction
         SupressHostOutput = $true
     }
 
@@ -577,8 +518,7 @@ function Remove-Container
 
 # this function wraps native command Execution
 # for more information, read https://mnaoumov.wordpress.com/2015/01/11/execution-of-external-commands-in-powershell-done-right/
-function script:Start-NativeExecution([scriptblock]$sb, [switch]$IgnoreExitcode)
-{
+function script:Start-NativeExecution([scriptblock]$sb, [switch]$IgnoreExitcode) {
     log "Running $($sb.ToString())"
     $backupEAP = $script:ErrorActionPreference
     $script:ErrorActionPreference = "Continue"
@@ -589,7 +529,8 @@ function script:Start-NativeExecution([scriptblock]$sb, [switch]$IgnoreExitcode)
         if ($LASTEXITCODE -ne 0 -and -not $IgnoreExitcode) {
             throw "Execution of {$sb} failed with exit code $LASTEXITCODE"
         }
-    } finally {
+    }
+    finally {
         $script:ErrorActionPreference = $backupEAP
     }
 }
@@ -607,8 +548,7 @@ function script:logerror([string]$message) {
 }
 
 # Class which describes the build data.
-class BuildData
-{
+class BuildData {
     # Required: The name of the Build
     [String]$Name
 
@@ -651,7 +591,6 @@ class BuildData
     [String[]]$EnableFeature
 }
 
-function New-BuildData
-{
+function New-BuildData {
     [BuildData]::new()
 }

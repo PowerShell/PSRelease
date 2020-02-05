@@ -10,14 +10,14 @@ Import-module $modulePath -force
 
 Describe "DockerBasedBuild.Common" {
     Context "Invoke-BuildInDocker -ArtifactAsFolder" {
-        BeforeAll{
+        BeforeAll {
             $buildData = New-BuildData
             $buildData.EnableFeature = @('ArtifactAsFolder')
             $buildData.DockerFile = 'TestDockerFile'
             $buildData.DockerImageName = 'TestImageName'
             $buildData.RepoDestinationPath = '/test'
             $buildData.BuildCommand = './TestBuildCommand.sh'
-            $emptyScriptBlock = {}
+            $emptyScriptBlock = { }
             Mock -CommandName 'New-DockerImage' -MockWith $emptyScriptBlock -Verifiable -ModuleName $moduleName
             Mock -CommandName 'Invoke-DockerBuild' -MockWith $emptyScriptBlock -Verifiable -ModuleName $moduleName
             Mock -CommandName 'Publish-VstsBuildArtifact' -MockWith $emptyScriptBlock -ModuleName $moduleName
@@ -33,13 +33,13 @@ Describe "DockerBasedBuild.Common" {
     }
 
     Context "Invoke-BuildInDocker" {
-        BeforeAll{
+        BeforeAll {
             $buildData = New-BuildData
             $buildData.DockerFile = 'TestDockerFile'
             $buildData.DockerImageName = 'TestImageName'
             $buildData.RepoDestinationPath = '/test'
             $buildData.BuildCommand = './TestBuildCommand.sh'
-            $emptyScriptBlock = {}
+            $emptyScriptBlock = { }
             Mock -CommandName 'New-DockerImage' -MockWith $emptyScriptBlock -Verifiable -ModuleName $moduleName
             Mock -CommandName 'Invoke-DockerBuild' -MockWith $emptyScriptBlock -Verifiable -ModuleName $moduleName
             Mock -CommandName 'Publish-VstsBuildArtifact' -MockWith $emptyScriptBlock -ModuleName $moduleName
@@ -71,8 +71,8 @@ Describe "DockerBasedBuild.Common" {
         }
 
         Context "Use mocked moby engine" {
-            BeforeAll{
-                Mock -CommandName 'docker' -MockWith {""} -Verifiable -ModuleName $moduleName
+            BeforeAll {
+                Mock -CommandName 'docker' -MockWith { "" } -Verifiable -ModuleName $moduleName
             }
 
             It "Should return moby" {
@@ -82,8 +82,8 @@ Describe "DockerBasedBuild.Common" {
             }
         }
         Context "Use mocked docker engine" {
-            BeforeAll{
-                Mock -CommandName 'docker' -MockWith {"Docker fake server platform"} -Verifiable -ModuleName $moduleName
+            BeforeAll {
+                Mock -CommandName 'docker' -MockWith { "Docker fake server platform" } -Verifiable -ModuleName $moduleName
             }
 
             It "Should return docker" {
@@ -104,8 +104,8 @@ Describe "DockerBasedBuild.Common" {
 
             Context "17.05" {
                 BeforeAll {
-                    Mock -CommandName 'Get-EngineType' -MockWith {"Docker"} -Verifiable -ModuleName $moduleName
-                    Mock -CommandName 'Get-DockerVersion' -MockWith {[version]'17.05'} -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-EngineType' -MockWith { "Docker" } -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-DockerVersion' -MockWith { [version]'17.05' } -Verifiable -ModuleName $moduleName
                 }
 
                 It "Should return false" {
@@ -118,8 +118,8 @@ Describe "DockerBasedBuild.Common" {
 
             Context "17.06" {
                 BeforeAll {
-                    Mock -CommandName 'Get-EngineType' -MockWith {"Docker"} -Verifiable -ModuleName $moduleName
-                    Mock -CommandName 'Get-DockerVersion' -MockWith {[version]'17.06'} -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-EngineType' -MockWith { "Docker" } -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-DockerVersion' -MockWith { [version]'17.06' } -Verifiable -ModuleName $moduleName
                 }
 
                 It "Should return true" {
@@ -134,8 +134,8 @@ Describe "DockerBasedBuild.Common" {
 
             Context "3.0.9" {
                 BeforeAll {
-                    Mock -CommandName 'Get-EngineType' -MockWith {"Moby"} -Verifiable -ModuleName $moduleName
-                    Mock -CommandName 'Get-DockerVersion' -MockWith {[version]'3.0.9'} -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-EngineType' -MockWith { "Moby" } -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-DockerVersion' -MockWith { [version]'3.0.9' } -Verifiable -ModuleName $moduleName
                 }
 
                 It "Should return false" {
@@ -148,8 +148,8 @@ Describe "DockerBasedBuild.Common" {
 
             Context "3.0.10" {
                 BeforeAll {
-                    Mock -CommandName 'Get-EngineType' -MockWith {"Moby"} -Verifiable -ModuleName $moduleName
-                    Mock -CommandName 'Get-DockerVersion' -MockWith {[version]'3.0.10'} -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-EngineType' -MockWith { "Moby" } -Verifiable -ModuleName $moduleName
+                    Mock -CommandName 'Get-DockerVersion' -MockWith { [version]'3.0.10' } -Verifiable -ModuleName $moduleName
                 }
 
                 It "Should return true" {
@@ -159,6 +159,6 @@ Describe "DockerBasedBuild.Common" {
                     $result | Should -BeTrue
                 }
             }
-        }    }
+        } }
 
 }

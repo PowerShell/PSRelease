@@ -8,12 +8,11 @@ Import-module $modulePath -force -Scope Local
 Describe $moduleName {
     Context "Publish-VstsBuildArtifact -ArtifactAsFolder" {
         BeforeAll {
-            $emptyScriptBlock = {}
+            $emptyScriptBlock = { }
             Mock -CommandName 'Write-Host' -MockWith $emptyScriptBlock -Verifiable -ModuleName $moduleName
             Mock -CommandName 'Publish-VstsArtifact' -MockWith $emptyScriptBlock -ModuleName $moduleName
             $path = 'testdrive:\testfolder'
-            if(!(Test-Path $path))
-            {
+            if (!(Test-Path $path)) {
                 $null = New-Item -Path $path -ItemType Directory
             }
 
@@ -27,22 +26,21 @@ Describe $moduleName {
             Publish-VstsBuildArtifact -ArtifactPath $path -ArtifactAsFolder -bucket testbucket
             Assert-VerifiableMock
             Assert-MockCalled -CommandName 'Publish-VstsArtifact' `
-                            -ModuleName $moduleName `
-                            -Exactly 2 `
-                            -ParameterFilter {
-                                $ArtifactName -eq 'testbucket'
-                            }
+                -ModuleName $moduleName `
+                -Exactly 2 `
+                -ParameterFilter {
+                $ArtifactName -eq 'testbucket'
+            }
         }
     }
 
     Context "Publish-VstsBuildArtifact -ArtifactAsFolder -PublishAsFolder" {
         BeforeAll {
-            $emptyScriptBlock = {}
+            $emptyScriptBlock = { }
             Mock -CommandName 'Write-Host' -MockWith $emptyScriptBlock -Verifiable -ModuleName $moduleName
             Mock -CommandName 'Publish-VstsArtifact' -MockWith $emptyScriptBlock -ModuleName $moduleName
             $path = 'testdrive:\testfolder'
-            if(!(Test-Path $path))
-            {
+            if (!(Test-Path $path)) {
                 $null = New-Item -Path $path -ItemType Directory
             }
 
@@ -55,11 +53,11 @@ Describe $moduleName {
             Publish-VstsBuildArtifact -ArtifactPath $path -ArtifactAsFolder -bucket testbucket -PublishAsFolder
             Assert-VerifiableMock
             Assert-MockCalled -CommandName 'Publish-VstsArtifact' `
-                            -ModuleName $moduleName `
-                            -Exactly 1 `
-                            -ParameterFilter {
-                                $ArtifactName -eq 'testbucket'
-                            }
+                -ModuleName $moduleName `
+                -Exactly 1 `
+                -ParameterFilter {
+                $ArtifactName -eq 'testbucket'
+            }
         }
     }
 }
