@@ -53,4 +53,47 @@ Describe "DockerBasedBuild.Common" {
             } -ModuleName $moduleName
         }
     }
+
+    Context "Get-EngineType" {
+        Context "Use AzDevOps docker" {
+
+            It "Should return moby on AzDevOps" {
+                if(!$env:TF_BUILD)
+                {
+                    Set-ItResult -Skipped -Because "Only test an Azure Dev Ops"
+                }
+
+                Get-EngineType  -NoCache | Should -Be 'Moby'
+            }
+        }
+
+        Context "Use mocked moby engine" {
+            BeforeAll{
+                Mock -CommandName 'docker' -MockWith {""} -Verifiable -ModuleName $moduleName
+            }
+
+            It "Should return moby" {
+                $result = Get-EngineType -NoCache
+                Assert-VerifiableMock
+                $result | Should -Be 'Moby'
+            }
+        }
+        Context "Use mocked docker engine" {
+            BeforeAll{
+                Mock -CommandName 'docker' -MockWith {"Docker fake server platform"} -Verifiable -ModuleName $moduleName
+            }
+
+            It "Should return docker" {
+                $result = Get-EngineType -NoCache
+                Assert-VerifiableMock
+                $result | Should -Be 'Docker'
+            }
+        }
+        Context "Use Cache" {
+            It "Should return moby" {
+                $result = Get-EngineType
+                $result | Should -Be 'Docker'
+            }
+        }
+    }
 }

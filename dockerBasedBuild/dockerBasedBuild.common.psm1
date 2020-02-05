@@ -294,7 +294,7 @@ function New-DockerImage
                 Copy-item -path $RepoLocation -Destination $RepoPath -Recurse
 
                 Invoke-CleanRepo -RepoLocation $repoPath
-                
+
                 # Add additional files to the repo after we have cleaned it
                 foreach($file in $AdditionalFiles)
                 {
@@ -433,6 +433,30 @@ function Get-DockerVersion
     return $script:dockerVersion
 }
 
+$script:dockerServerPlatformName
+function Get-EngineType
+{
+    param(
+        [switch] $NoCache
+    )
+
+    if(!$script:dockerServerPlatformName -or $NoCache.IsPresent)
+    {
+        $script:dockerServerPlatformName = Invoke-Docker -Command 'version' -Params '--format', '{{.Server.Platform.Name}}' -SupressHostOutput -PassThru
+    }
+
+    switch -Regex ($script:dockerServerPlatformName) {
+        "^Docker.*$" {
+            "Docker"
+        }
+        # moby doesn't declare a name
+        default {
+            "Moby"
+        }
+    }
+}
+
+
 # Call Docker with appropriate result checks
 function Invoke-Docker
 {
@@ -508,23 +532,21 @@ function Remove-Container
         SupressHostOutput = $true
     }
 
-    if(Get-DockerVersion -ge [Version]'17.06')
-    {
+    if ((Get-EngineType -eq 'Docker' -and Get-DockerVersion -ge [Version]'17.06') -or (Get-EngineType -eq 'Docker' -and Get-DockerVersion -ge [Version]'3.0.10')) {
         Invoke-Docker -Command 'container', 'prune' -Params '--force' -SupressHostOutput
     }
-    else
-    {
+    else {
         # stop all running containers
         Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}' @commonDockerParams -PassThru |
-            Where-Object {$_ -ne $null} |
-            ConvertFrom-Json |
-            ForEach-Object { $null = Invoke-Docker -Command stop -Params $_.Names  @commonDockerParams}
+        Where-Object { $_ -ne $null } |
+        ConvertFrom-Json |
+        ForEach-Object { $null = Invoke-Docker -Command stop -Params $_.Names  @commonDockerParams }
 
         # remove all containers
         Invoke-Docker -Command 'ps' -Params '--format', '{{ json .}}', '--all' @commonDockerParams -PassThru |
-            Where-Object {$_ -ne $null} |
-            ConvertFrom-Json |
-            ForEach-Object { $null = Invoke-Docker -Command rm -Params $_.Names  @commonDockerParams}
+        Where-Object { $_ -ne $null } |
+        ConvertFrom-Json |
+        ForEach-Object { $null = Invoke-Docker -Command rm -Params $_.Names  @commonDockerParams }
     }
 }
 
