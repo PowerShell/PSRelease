@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 param(
     [parameter(Mandatory)]
@@ -41,14 +41,13 @@ Write-Verbose -Verbose "Completed downlading agent.zip"
 # add user for vsts agent to runas
 $randomObj = New-Object System.Random
 $password = ""
-1..(Get-Random -Minimum 8 -Maximum 14) | ForEach-Object { $password = $password + [char]$randomObj.next(45,126) }
+1..(Get-Random -Minimum 8 -Maximum 14) | ForEach-Object { $password = $password + [char]$randomObj.next(45, 126) }
 
 $userName = 'VssAdministrator'
 
 $userExists = $null -ne (net user | Select-String -Pattern $userName -SimpleMatch)
 
-if ($userExists)
-{
+if ($userExists) {
     Write-Verbose -Verbose "Deleting user"
     net user $userName /delete
 }
@@ -61,8 +60,7 @@ Write-Verbose -Verbose "User added to administrators group."
 
 $agentPath = Join-Path -Path $env:SystemDrive -ChildPath 'AzDevOpsAgent'
 
-if (Test-Path $agentPath)
-{
+if (Test-Path $agentPath) {
     Write-Verbose -Verbose "Removing agent."
     Remove-Item -Force $agentPath -Recurse
 }
