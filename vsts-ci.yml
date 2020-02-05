@@ -28,15 +28,15 @@ jobs:
   pool:
     vmImage: vs2017-win2016
   steps:
-  - powershell:  Write-Host "##vso[build.updatebuildnumber]$env:BUILD_SOURCEBRANCHNAME-$env:BUILD_SOURCEVERSION-$((get-date).ToString("yyyyMMddhhss"))"
+  - pwsh:  Write-Host "##vso[build.updatebuildnumber]$env:BUILD_SOURCEBRANCHNAME-$env:BUILD_SOURCEVERSION-$((get-date).ToString("yyyyMMddhhss"))"
     displayName: Set Build Name for Non-PR
     condition: ne(variables['Build.Reason'], 'PullRequest')
 
-  - powershell:  Install-module pester -Scope CurrentUser -Force -SkipPublisherCheck
+  - pwsh:  Install-module pester -Scope CurrentUser -Force -SkipPublisherCheck
     displayName: Install Pester
     condition: succeededOrFailed()
 
-  - powershell: |
+  - pwsh: |
       $results = Invoke-Pester -OutputFile test-win-results.xml -OutputFormat NUnitXml -PassThru
 
       if(!$results -or !$results.TotalCount -or $results.FailedCount -gt 0)
@@ -50,11 +50,11 @@ jobs:
   pool:
     vmImage: ubuntu-18.04
   steps:
-  - powershell:  Install-module pester -Scope CurrentUser -Force -SkipPublisherCheck
+  - pwsh:  Install-module pester -Scope CurrentUser -Force -SkipPublisherCheck
     displayName: Install Pester
     condition: succeededOrFailed()
 
-  - powershell: |
+  - pwsh: |
       $results = Invoke-Pester -OutputFile test-linux-results.xml -OutputFormat NUnitXml -PassThru
 
       if(!$results -or !$results.TotalCount -or $results.FailedCount -gt 0)
