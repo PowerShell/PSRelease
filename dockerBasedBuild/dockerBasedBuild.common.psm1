@@ -426,6 +426,7 @@ function Get-DockerVersion
     {
         $versionString = Invoke-Docker -Command 'version' -Params '--format', '{{.Server.Version}}' -SupressHostOutput -PassThru
         $versionParts = $versionString.Split('-')
+        $versionParts = $versionParts[0].Split('+')
         $script:dockerVersion = [Version] $versionParts[0]
     }
 
