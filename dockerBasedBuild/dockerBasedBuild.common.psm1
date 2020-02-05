@@ -420,11 +420,8 @@ function Invoke-DockerBuild
 }
 
 $script:dockerVersion
-function Get-DockerVersion
-{
-    Write-Verbose "in gdv" -Verbose
-    if(!$script:dockerVersion)
-    {
+function Get-DockerVersion {
+    if (!$script:dockerVersion) {
         $versionString = Invoke-Docker -Command 'version' -Params '--format', '{{.Server.Version}}' -SupressHostOutput -PassThru
         $versionParts = $versionString.Split('-')
         $versionParts = $versionParts[0].Split('+')
