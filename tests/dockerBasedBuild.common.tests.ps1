@@ -58,12 +58,15 @@ Describe "DockerBasedBuild.Common" {
         Context "Use AzDevOps docker" {
 
             It "Should return moby on AzDevOps" {
-                if(!$env:TF_BUILD)
-                {
+                if (!$env:TF_BUILD) {
                     Set-ItResult -Skipped -Because "Only test an Azure Dev Ops"
                 }
+                $expectedResult = 'Moby'
+                if ($IsWindows) {
+                    $expectedResult = 'Docker'
+                }
 
-                Get-EngineType  -NoCache | Should -Be 'Moby'
+                Get-EngineType -NoCache -Verbose | Should -Be $expectedResult
             }
         }
 

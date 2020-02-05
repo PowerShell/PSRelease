@@ -445,6 +445,8 @@ function Get-EngineType
         $script:dockerServerPlatformName = Invoke-Docker -Command 'version' -Params '--format', '{{.Server.Platform.Name}}' -SupressHostOutput -PassThru
     }
 
+    Write-Verbose "PlatformName: $script:dockerServerPlatformName"
+
     switch -Regex ($script:dockerServerPlatformName) {
         "^Docker.*$" {
             "Docker"
