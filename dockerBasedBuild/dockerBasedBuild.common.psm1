@@ -523,24 +523,21 @@ function Invoke-Docker
     return $true
 }
 
-function Test-SupportPrune
-{
+function Test-SupportPrune {
     $engine = Get-EngineType
     Write-Verbose "in tsp - $engine"
-    if($engine -eq 'Docker'){
+    if ($engine -eq 'Docker') {
         $version = Get-DockerVersion
         Write-Verbose "in tsp-docker-$version"
-        if($version -ge [Version]'17.06')
-        {
+        if ($version -ge [Version]'17.06') {
             Write-Verbose "in tsp-docker-supported"
             return $true
         }
     }
-    elseif($engine -eq 'Moby') {
+    elseif ($engine -eq 'Moby') {
         $version = Get-DockerVersion
         Write-Verbose "in tsp-moby-$version"
-        if($version -ge [Version]'3.0.10')
-        {
+        if ($version -ge [Version]'3.0.10') {
             Write-Verbose "in tsp-moby-supported"
             return $true
         }
