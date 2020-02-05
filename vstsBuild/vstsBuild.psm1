@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 # VSTS task states: Succeeded|SucceededWithIssues|Failed|Cancelled|Skipped

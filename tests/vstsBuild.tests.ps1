@@ -1,4 +1,4 @@
-# Copyright (c) Microsoft Corporation. All rights reserved.
+# Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
 $moduleName = 'vstsBuild'
@@ -30,7 +30,7 @@ Describe $moduleName {
                             -ModuleName $moduleName `
                             -Exactly 2 `
                             -ParameterFilter {
-                                $ArtifactName -eq 'testbucket' 
+                                $ArtifactName -eq 'testbucket'
                             }
         }
     }
@@ -58,7 +58,7 @@ Describe $moduleName {
                             -ModuleName $moduleName `
                             -Exactly 1 `
                             -ParameterFilter {
-                                $ArtifactName -eq 'testbucket' 
+                                $ArtifactName -eq 'testbucket'
                             }
         }
     }
