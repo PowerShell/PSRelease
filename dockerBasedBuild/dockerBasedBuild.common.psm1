@@ -422,6 +422,7 @@ function Invoke-DockerBuild
 $script:dockerVersion
 function Get-DockerVersion
 {
+    Write-Verbose "in gdv" -Verbose
     if(!$script:dockerVersion)
     {
         $versionString = Invoke-Docker -Command 'version' -Params '--format', '{{.Server.Version}}' -SupressHostOutput -PassThru
@@ -522,6 +523,33 @@ function Invoke-Docker
     return $true
 }
 
+function Test-SupportPrune
+{
+    $engine = Get-EngineType
+    Write-Verbose "in tsp - $engine"
+    if($engine -eq 'Docker'){
+        $version = Get-DockerVersion
+        Write-Verbose "in tsp-docker-$version"
+        if($version -ge [Version]'17.06')
+        {
+            Write-Verbose "in tsp-docker-supported"
+            return $true
+        }
+    }
+    elseif($engine -eq 'Moby') {
+        $version = Get-DockerVersion
+        Write-Verbose "in tsp-moby-$version"
+        if($version -ge [Version]'3.0.10')
+        {
+            Write-Verbose "in tsp-moby-supported"
+            return $true
+        }
+    }
+
+    Write-Verbose "in tsp-not-supported"
+    return $false
+}
+
 function Remove-Container
 {
     param(
@@ -534,7 +562,7 @@ function Remove-Container
         SupressHostOutput = $true
     }
 
-    if ((Get-EngineType -eq 'Docker' -and Get-DockerVersion -ge [Version]'17.06') -or (Get-EngineType -eq 'Docker' -and Get-DockerVersion -ge [Version]'3.0.10')) {
+    if (Test-SupportPrune) {
         Invoke-Docker -Command 'container', 'prune' -Params '--force' -SupressHostOutput
     }
     else {

@@ -45,7 +45,7 @@ jobs:
       }
     displayName: Run Unit tests
   - task: PublishTestResults@2
-    displayName: Publish Test Results **/TEST-*.xml
+    displayName: Publish Test Results **/test-*.xml
 - job: linux
   pool:
     vmImage: ubuntu-18.04
@@ -63,5 +63,5 @@ jobs:
       }
     displayName: Run Unit tests
   - task: PublishTestResults@2
-    displayName: Publish Test Results **/TEST-*.xml
+    displayName: Publish Test Results **/test-*.xml
 
