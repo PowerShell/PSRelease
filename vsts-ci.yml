@@ -46,6 +46,11 @@ jobs:
     displayName: Run Unit tests
   - task: PublishTestResults@2
     displayName: Publish Test Results **/test-*.xml
+    inputs:
+      testRunner: NUnit
+      testResultsFiles: '**\test*.xml'
+      testRunTitle: Windows
+      mergeTestResults: true
 - job: linux
   pool:
     vmImage: ubuntu-18.04
@@ -64,4 +69,9 @@ jobs:
     displayName: Run Unit tests
   - task: PublishTestResults@2
     displayName: Publish Test Results **/test-*.xml
+    inputs:
+      testRunner: NUnit
+      testResultsFiles: '**\test*.xml'
+      testRunTitle: Linux
+      mergeTestResults: true
 
